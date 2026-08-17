@@ -207,8 +207,13 @@ if __name__ == "__main__":
     )
 
     with ProcessPoolExecutor(max_workers=6) as executor:
-        # Submitting tasks to the pool for parallel execution
-        results = executor.map(partial_par_processor, range(len(l_strings)), l_strings)
+        results = list(
+            executor.map(
+                partial_par_processor,
+                range(len(l_strings)),
+                l_strings,
+            )
+        )
 
     # This check is required, because the exceptions from par processor are swallowed by ProcessPoolExecutor,
     futils.validate_file_types_in_sub_folders(folder_path=outfile_raw_dir, file_types=[".urdf"])
