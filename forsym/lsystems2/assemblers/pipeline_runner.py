@@ -1,4 +1,5 @@
 """File to test TurtleState => TurtleBranch => TreeBranch pipeline"""
+import forsym
 
 import functools
 import copy
@@ -13,15 +14,15 @@ from forsym.common import futils
 from forsym.fractal import turtle
 from forsym.lsystems2.assemblers import tree_generator, urdf_generator
 
-import forsym.trees.lsystems2.conf.yaml_parser as parser
-from forsym.trees.lsystems2.assemblers.domain import NodeType
+import forsym.lsystems2.conf.yaml_parser as parser
+from forsym.lsystems2.assemblers.domain import NodeType
 
 random.seed(42)
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+PROJECT_ROOT = Path(forsym.__file__).resolve().parents[1]
 GENERATED_ROOT = PROJECT_ROOT / "generated"
 
-parser.yaml_file = Path(__file__).parents[1] / "conf" / "ternary_a.yaml"
+parser.yaml_file = PROJECT_ROOT / "configs" / "ternary_a.yaml"
 
 
 def find_dof_roots(_t_root, _tree_config, _l_configs):

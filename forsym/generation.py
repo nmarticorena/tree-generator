@@ -31,3 +31,9 @@ def generate_tree_asset(config: TreeGenerationConfig) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(source, output)
     return output
+
+
+if __name__ == "__main__":
+    # Example usage
+    import tyro
+    tyro.cli(generate_tree_asset)

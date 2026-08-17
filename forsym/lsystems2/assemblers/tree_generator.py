@@ -3,10 +3,10 @@ from collections import deque
 
 import numpy as np
 import copy
-from mjlab_pcap.trees.fractal import rewriter
-from mjlab_pcap.trees.fractal.turtle import TurtleBranch
-from mjlab_pcap.trees.utils import physics, rotation
-from mjlab_pcap.trees.lsystems2.assemblers.domain import JointType, TreeBranch, LeafConn, FruitConn
+from forsym.fractal import rewriter
+from forsym.fractal.turtle import TurtleBranch
+from forsym.utils import physics, rotation
+from forsym.lsystems2.assemblers.domain import JointType, TreeBranch, LeafConn, FruitConn
 import random
 
 random.seed(42)

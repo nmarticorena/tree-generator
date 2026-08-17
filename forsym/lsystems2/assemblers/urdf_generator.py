@@ -6,7 +6,7 @@ from anytree import RenderTree
 from collections import deque
 from math import pi
 from pathlib import Path
-from mjlab_pcap.trees.lsystems2.assemblers.domain import NodeType, JointType
+from forsym.lsystems2.assemblers.domain import NodeType, JointType
 import numpy as np
 
 TEMPLATE_ROOT = Path(__file__).resolve().parents[1] / "urdf" / "tree" / "gen"

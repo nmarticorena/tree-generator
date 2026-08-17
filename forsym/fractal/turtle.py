@@ -4,7 +4,7 @@ import random
 from typing import List
 from anytree import NodeMixin
 from forsym.fractal import rule_parser as parser
-from forsym.trees.fractal import turtle_steer as steering
+from forsym.fractal import turtle_steer as steering
 
 
 class Point:
