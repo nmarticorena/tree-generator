@@ -1,0 +1,14 @@
+[workspace]
+authors = ["nmarticorena <nicolas.marticorena.vidal@gmail.com>"]
+channels = ["conda-forge"]
+name = "tree-generator"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+python = "3.14"
+
+[pypi-dependencies]
+forsym = {path = "."}
