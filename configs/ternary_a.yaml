@@ -87,12 +87,12 @@ tree:
       spherical_dim: 2
 
     fruits:
-      include: false
+      include: true
       fruit_branches: [] # leave empty to use random branches for placing fruits.
       fruits_cnt: 3
 
     leaves:
-      include: false
+      include: true
 
 
 
