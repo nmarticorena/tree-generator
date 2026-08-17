@@ -6,11 +6,15 @@ dependencies = [
   "anytree",
   "hatchling",
   "lxml",
+  "pyyaml"
 ]  # Add dependencies if there are any
 
 [build-system] # this is to fix issue with pixi pip install on editable mode
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
 
 [tool.ty.environment]
 python = "./.pixi/envs/default/bin/python"

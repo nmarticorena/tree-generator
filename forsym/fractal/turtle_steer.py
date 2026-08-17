@@ -1,4 +1,4 @@
-""" Functions to turn, rotate and spin the turtle
+"""Functions to turn, rotate and spin the turtle
 partly taken/inspired from from https://github.com/ThomasLENNE/L-system
 HLU Description from Prusinkiewicz, P., & Lindenmayer, A. (2012). The algorithmic beauty of plants. . Page 18, Sec 1.5.
 """
@@ -21,11 +21,9 @@ def rotate_around_u(angle, hlu):
     hlu = np.array(hlu).T
 
     # The rotation_matrix is from abop page 19
-    rotation_matrix = np.array([
-        [math.cos(angle), math.sin(angle), 0],
-        [-math.sin(angle), math.cos(angle), 0],
-        [0, 0, 1]
-    ])
+    rotation_matrix = np.array(
+        [[math.cos(angle), math.sin(angle), 0], [-math.sin(angle), math.cos(angle), 0], [0, 0, 1]]
+    )
     hlu = np.dot(hlu, rotation_matrix)
     H, L, U = hlu.T[0], hlu.T[1], hlu.T[2]
     return H.tolist(), L.tolist(), U.tolist()
@@ -45,11 +43,9 @@ def rotate_around_h(angle, hlu):
     hlu = np.array(hlu).T
 
     # The rotation_matrix is from abop page 19
-    rotation_matrix = np.array([
-        [1, 0, 0],
-        [0, math.cos(angle), -math.sin(angle)],
-        [0, math.sin(angle), math.cos(angle)]
-    ])
+    rotation_matrix = np.array(
+        [[1, 0, 0], [0, math.cos(angle), -math.sin(angle)], [0, math.sin(angle), math.cos(angle)]]
+    )
     hlu = np.dot(hlu, rotation_matrix)
     H, L, U = hlu.T[0], hlu.T[1], hlu.T[2]
     return H.tolist(), L.tolist(), U.tolist()
@@ -69,11 +65,9 @@ def rotate_around_l(angle, hlu):
     hlu = np.array(hlu).T
 
     # The rotation_matrix is from abop page 19
-    rotation_matrix = np.array([
-        [math.cos(angle), 0, -math.sin(angle)],
-        [0, 1, 0],
-        [math.sin(angle), 0, math.cos(angle)]
-    ])
+    rotation_matrix = np.array(
+        [[math.cos(angle), 0, -math.sin(angle)], [0, 1, 0], [math.sin(angle), 0, math.cos(angle)]]
+    )
     hlu = np.dot(hlu, rotation_matrix)
     H, L, U = hlu.T[0], hlu.T[1], hlu.T[2]
     return H.tolist(), L.tolist(), U.tolist()
@@ -93,7 +87,7 @@ def keep_l_horizontal(hlu):
     [xh, yh, zh] = H
     V = [0, 0, 1]
     L = [-yh, -xh, 0]
-    U = [xh * zh, -zh * yh, -xh ** 2 - yh ** 2]
+    U = [xh * zh, -zh * yh, -(xh**2) - yh**2]
     return H, L, U
 
 
@@ -147,11 +141,13 @@ def rotate(hlu, axis, angle):
     [ax, ay, az] = axis
     c = math.cos(angle)
     s = math.sin(angle)
-    rotation_matrix = np.array([
-        [ax ** 2 * (1 - c) + c, ax * ay * (1 - c) - az * s, ax * az * (1 - c) + ay * s],
-        [ax * ay * (1 - c) + az * s, ay ** 2 * (1 - c) + c, ay * az * (1 - c) - ax * s],
-        [ax * az * (1 - c) - ay * s, ay * az * (1 - c) + ax * s, az ** 2 * (1 - c) + c]
-    ])
+    rotation_matrix = np.array(
+        [
+            [ax**2 * (1 - c) + c, ax * ay * (1 - c) - az * s, ax * az * (1 - c) + ay * s],
+            [ax * ay * (1 - c) + az * s, ay**2 * (1 - c) + c, ay * az * (1 - c) - ax * s],
+            [ax * az * (1 - c) - ay * s, ay * az * (1 - c) + ax * s, az**2 * (1 - c) + c],
+        ]
+    )
     [H, L, U] = hlu
     H = np.array(H)
     L = np.array(L)

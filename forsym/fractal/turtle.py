@@ -8,7 +8,7 @@ from forsym.trees.fractal import turtle_steer as steering
 
 
 class Point:
-    """ An x-y-z coordinate"""
+    """An x-y-z coordinate"""
 
     def __init__(self, x, y, z):
         self.x = x
@@ -20,9 +20,11 @@ class Point:
 
     def __eq__(self, other):
         if isinstance(other, Point):
-            return round(self.x, 5) == round(other.x, 5) and \
-                round(self.y, 5) == round(other.y, 5) and \
-                round(self.z, 5) == round(other.z, 5)
+            return (
+                round(self.x, 5) == round(other.x, 5)
+                and round(self.y, 5) == round(other.y, 5)
+                and round(self.z, 5) == round(other.z, 5)
+            )
         return False
 
     def __hash__(self):
@@ -37,7 +39,7 @@ class Point:
             dx = self.x - other.x
             dy = self.y - other.y
             dz = self.z - other.z
-            distance = math.sqrt(dx ** 2 + dy ** 2 + dz ** 2)
+            distance = math.sqrt(dx**2 + dy**2 + dz**2)
             return distance
         raise TypeError("Distance can only be calculated between two Point instances.")
 
@@ -75,8 +77,8 @@ class TurtleLine:
 
 
 class TurtleBranch(NodeMixin):
-    """ An intermediate class with the anytree hierarchy between Turtle Line and Tree Branch
-        TurtleLine => TurtleBranch => TreeBranch """
+    """An intermediate class with the anytree hierarchy between Turtle Line and Tree Branch
+    TurtleLine => TurtleBranch => TreeBranch"""
 
     def __init__(self, turtle_line: TurtleLine, parent=None):
         super().__init__()
@@ -88,9 +90,16 @@ class TurtleBranch(NodeMixin):
         self.turtle_line = turtle_line
 
     def t_name(self):
-        return str(self.turtle_line).replace('[', '').replace(']', '').replace("'", '') \
-            .replace(self.turtle_line.__class__.__name__, self.__class__.__name__) \
-            .replace(self.__class__.__name__, '').replace('Point', '').replace(':', '')
+        return (
+            str(self.turtle_line)
+            .replace("[", "")
+            .replace("]", "")
+            .replace("'", "")
+            .replace(self.turtle_line.__class__.__name__, self.__class__.__name__)
+            .replace(self.__class__.__name__, "")
+            .replace("Point", "")
+            .replace(":", "")
+        )
 
     def __eq__(self, other):
         return self.turtle_line == other.turtle_line
@@ -132,11 +141,9 @@ def l_string_to_turtle_lines(l_string, l_config):
     theta_r = _to_radians(l_config.theta)
     sigma_r = _to_radians(l_config.sigma)
 
-    init_hlu = ([0, 0, 1],
-                [-math.sin(theta_r), -math.cos(theta_r), 0],
-                [-math.cos(theta_r), math.sin(theta_r), 0])
+    init_hlu = ([0, 0, 1], [-math.sin(theta_r), -math.cos(theta_r), 0], [-math.cos(theta_r), math.sin(theta_r), 0])
 
-    t_line = TurtleLine(start=Point(0, 0, 0), hlu=init_hlu, width=1.)
+    t_line = TurtleLine(start=Point(0, 0, 0), hlu=init_hlu, width=1.0)
     l_tokens = parser.tokenize(l_string)
 
     t_lines = []  # Lines to draw
@@ -145,29 +152,29 @@ def l_string_to_turtle_lines(l_string, l_config):
     for command in l_tokens:
         start, hlu, line_width = t_line.start, t_line.hlu, t_line.width
 
-        if command.startswith('F'):  # Move forward
+        if command.startswith("F"):  # Move forward
             seg_lens = parser.extract_values(token=command)
             t_line.end = translate(point=start, length=seg_lens[0], heading=hlu[0])
             # applying tropism is optional, but gives you the nice arch on the branches from gravity.
             t_line.hlu = steering.apply_tropism(hlu, tropism=tropism)
 
         # Page 46, section 1.10.3 Turtle interpretation of parametric words
-        elif '(' in command and parser.extract_operand(succ=command) == "+({})":
+        elif "(" in command and parser.extract_operand(succ=command) == "+({})":
             alpha = _parse_angle(_command=command)
             hlu = steering.rotate_around_u(random.gauss(alpha, sigma_r), hlu)
             t_line = TurtleLine(start=start, hlu=hlu, width=line_width)
 
-        elif '(' in command and parser.extract_operand(succ=command) == "&({})":
+        elif "(" in command and parser.extract_operand(succ=command) == "&({})":
             gamma = _parse_angle(_command=command)
             hlu = steering.rotate_around_l(random.gauss(gamma, sigma_r), hlu)
             t_line = TurtleLine(start=start, hlu=hlu, width=line_width)
 
-        elif '(' in command and parser.extract_operand(succ=command) == "/({})":
+        elif "(" in command and parser.extract_operand(succ=command) == "/({})":
             phi = _parse_angle(_command=command)
             hlu = steering.rotate_around_h(random.gauss(phi, sigma_r), hlu)
             t_line = TurtleLine(start=start, hlu=hlu, width=line_width)
 
-        elif command == '[':  # Remember current t_line
+        elif command == "[":  # Remember current t_line
             # beginning of a new branch, so set current end as the start
             point = t_line.end if t_line.end is not None else t_line.start
             split_t_line = TurtleLine(start=point, hlu=hlu, width=line_width)
@@ -175,14 +182,14 @@ def l_string_to_turtle_lines(l_string, l_config):
             t_lines.append(t_line)
             t_line = split_t_line
 
-        elif command == ']':  # Return to previous t_line
+        elif command == "]":  # Return to previous t_line
             t_line = stack.pop()
 
-        elif '(' in command and parser.extract_operand(succ=command) == "N({})":
+        elif "(" in command and parser.extract_operand(succ=command) == "N({})":
             line_width = parser.extract_values(token=command)[0]
             t_line = TurtleLine(start=start, hlu=hlu, width=line_width)
 
-        elif command == '$':
+        elif command == "$":
             hlu = steering.keep_l_horizontal(hlu)
             t_line = TurtleLine(start=start, hlu=hlu, width=line_width)
 
@@ -191,7 +198,7 @@ def l_string_to_turtle_lines(l_string, l_config):
 
 
 def turtle_lines_to_branches(turtle_lines: List[TurtleLine]):
-    """ TurtleLine(s) => TurtleBranch(s)"""
+    """TurtleLine(s) => TurtleBranch(s)"""
 
     t_root = TurtleBranch(turtle_line=turtle_lines[0])
     branch_store_by_line = {turtle_lines[0]: t_root}
