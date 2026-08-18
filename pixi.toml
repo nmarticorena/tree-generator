@@ -2,7 +2,7 @@
 authors = ["nmarticorena <nicolas.marticorena.vidal@gmail.com>"]
 channels = ["conda-forge"]
 name = "tree-generator"
-platforms = ["linux-64"]
+platforms = ["linux-64", "osx-arm64"]
 version = "0.1.0"
 
 [tasks]
