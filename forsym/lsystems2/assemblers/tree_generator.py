@@ -48,10 +48,10 @@ def add_leaf_n_fruit_nodes(root, t_config):
         if "branch" in node.name:
             if t_config.include_fruits:
                 add_fruits(node, t_config)
-                raise ValueError("Mass/Inertia Changes for flexible links yet to be implemented in fruit template.")
+                # raise ValueError("Mass/Inertia Changes for flexible links yet to be implemented in fruit template.")
 
-            if t_config.include_leaves:
-                raise ValueError("Not implemented yet.")
+            # if t_config.include_leaves:
+                # raise ValueError("Not implemented yet.")
 
         for child in node.children:
             if not isinstance(child, LeafConn):
