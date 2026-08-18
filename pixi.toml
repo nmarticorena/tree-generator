@@ -8,10 +8,13 @@ version = "0.1.0"
 [tasks]
 
 [dependencies]
-python = "3.14"
+python = "3.14.*"
 ruff = ">=0.16.3,<0.17"
 inquirerpy = ">=0.3.4,<0.4"
 numpy = ">=2.5.2,<3"
+emsdk = ">=3.1.46,<4"
 
 [pypi-dependencies]
-forsym = {path = ".", editable = true}
+forsym = {path = ".", editable = true, extras = ["mujoco-warp","teleoperation"]}
+urdf2mjcf = {git = "https://github.com/kscalelabs/urdf2mjcf.git"}
+
