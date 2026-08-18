@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101814" />
+    <title>MuJoCo Tree Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <p class="eyebrow">MuJoCo WASM</p>
+            <h1>Ternary tree viewer</h1>
+          </div>
+        </div>
+        <div class="status-wrap">
+          <span id="status-dot" class="status-dot loading"></span>
+          <span id="status-text">Loading engine…</span>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <div id="viewport" class="viewport">
+          <canvas id="scene" aria-label="Interactive 3D view of the MuJoCo tree model"></canvas>
+          <div class="viewport-fade"></div>
+
+          <div id="loading-card" class="loading-card">
+            <div class="loader" aria-hidden="true"></div>
+            <strong id="loading-title">Starting MuJoCo</strong>
+            <span id="loading-detail">Loading the WebAssembly runtime</span>
+          </div>
+
+          <div class="scene-hud">
+            <div class="hud-item"><span>TIME</span><strong id="sim-time">0.000 s</strong></div>
+            <div class="hud-item"><span>GEOMS</span><strong id="geom-count">—</strong></div>
+            <div class="hud-item"><span>BODIES</span><strong id="body-count">—</strong></div>
+          </div>
+
+          <div class="controls-hint">
+            <span><i class="mouse-icon"></i> drag a branch to pull</span>
+            <span>drag empty space to orbit</span>
+            <span>shift + drag to pan</span>
+            <span>scroll to zoom</span>
+          </div>
+        </div>
+
+        <aside class="panel">
+          <section class="panel-section model-section">
+            <p class="section-label">MODEL</p>
+            <div class="file-card">
+              <div class="file-icon">MJ</div>
+              <div class="file-copy">
+                <strong>ternary_a.mjcf</strong>
+                <span>pliable04 · ta_0000</span>
+              </div>
+              <span class="wasm-badge">WASM</span>
+            </div>
+            <p class="model-path" title="generated/tree/gen/pliable04/ta/raw_train/ta_0000/ternary_a.mjcf">
+              generated/tree/gen/pliable04/ta/raw_train/ta_0000/ternary_a.mjcf
+            </p>
+            <p id="compatibility-note" class="compatibility-note" hidden>
+              Root body name normalized in memory for MuJoCo 3.11.
+            </p>
+          </section>
+
+          <section class="panel-section">
+            <div class="section-heading">
+              <p class="section-label">SIMULATION</p>
+              <span id="run-state" class="run-state">PAUSED</span>
+            </div>
+            <div class="transport">
+              <button id="reset-button" class="icon-button" type="button" title="Reset simulation" disabled aria-label="Reset simulation">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v6h6M5.5 15a7 7 0 1 0 .2-6.2L4 10"/></svg>
+              </button>
+              <button id="play-button" class="play-button" type="button" disabled>
+                <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>
+                <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+                <span>Play</span>
+              </button>
+              <button id="step-button" class="icon-button" type="button" title="Step once" disabled aria-label="Step simulation once">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 5 9 7-9 7V5Zm10 0h2v14h-2z"/></svg>
+              </button>
+            </div>
+
+            <label class="field-label" for="speed-select">Playback speed</label>
+            <select id="speed-select" class="select-control" disabled>
+              <option value="0.25">0.25×</option>
+              <option value="0.5">0.5×</option>
+              <option value="1" selected>1× realtime</option>
+              <option value="2">2×</option>
+              <option value="4">4×</option>
+            </select>
+
+            <label class="switch-row">
+              <span><strong>Gravity</strong><small>Use the model gravity vector</small></span>
+              <input id="gravity-toggle" type="checkbox" checked disabled />
+              <i class="switch"></i>
+            </label>
+          </section>
+
+          <section class="panel-section">
+            <p class="section-label">DISPLAY</p>
+
+            <label class="field-label" for="geometry-select">Geometry</label>
+            <select id="geometry-select" class="select-control" disabled>
+              <option value="visual" selected>Visual</option>
+              <option value="collision">Collision</option>
+              <option value="both">Visual + collision</option>
+            </select>
+
+            <label class="switch-row compact">
+              <span><strong>Sites</strong><small>Joint and sensor markers</small></span>
+              <input id="sites-toggle" type="checkbox" disabled />
+              <i class="switch"></i>
+            </label>
+            <label class="switch-row compact">
+              <span><strong>Wireframe</strong><small>Show mesh topology</small></span>
+              <input id="wireframe-toggle" type="checkbox" disabled />
+              <i class="switch"></i>
+            </label>
+            <label class="switch-row compact">
+              <span><strong>Auto rotate</strong><small>Slowly orbit the model</small></span>
+              <input id="rotate-toggle" type="checkbox" disabled />
+              <i class="switch"></i>
+            </label>
+
+            <button id="fit-button" class="secondary-button" type="button" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg>
+              Fit camera to model
+            </button>
+          </section>
+
+          <section class="panel-section stats-section">
+            <p class="section-label">MODEL INFO</p>
+            <dl class="stats-grid">
+              <div><dt>DoF</dt><dd id="dof-count">—</dd></div>
+              <div><dt>Joints</dt><dd id="joint-count">—</dd></div>
+              <div><dt>Timestep</dt><dd id="timestep">—</dd></div>
+              <div><dt>Contacts</dt><dd id="contact-count">—</dd></div>
+            </dl>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <div id="error-toast" class="error-toast" role="alert" hidden>
+      <strong>Could not load the viewer</strong>
+      <span id="error-message"></span>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
