@@ -150,8 +150,7 @@ def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs):
     urdf_generator.gen_urdf(trunk, output_path, tree_config.spherical_dim)
     print("-----------------------------------------------------------------------------------------------------")
 
-
-if __name__ == "__main__":
+def main():
     user_input = input(f"Files will be overwritten. Do you want to continue? (yes/no): ").strip().lower()
     if user_input not in ("yes", "no"):
         print("Please enter 'yes' or 'no'.")
@@ -218,3 +217,7 @@ if __name__ == "__main__":
     # This check is required, because the exceptions from par processor are swallowed by ProcessPoolExecutor,
     futils.validate_file_types_in_sub_folders(folder_path=outfile_raw_dir, file_types=[".urdf"])
     print("Flexible Tree Generation Completed.")
+
+if __name__ == "__main__":
+    main()
+    
