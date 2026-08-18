@@ -266,7 +266,7 @@ def _controls(server, data):
         depth_test=False,
         position=data.mocap_pos[0],
         wxyz=data.mocap_quat[0],
-        translation_limits=((-0.5, 2.0), (-1.5, 1.5), (0.02, 2.0)),
+        translation_limits=((-0.5, 2.0), (-1.5, 1.5), (-2, 3.0)),
     )
     with server.gui.add_folder("Franka teleoperation"):
         server.gui.add_markdown("Drag the RGB gizmo to move or rotate the gripper.")
