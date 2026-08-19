@@ -55,9 +55,9 @@ class TreeConfig:
     @classmethod
     def from_dict(cls, values:dict) -> "TreeConfig":
         return cls(
-            length_scale=values["length_scale"],
-            radius_scale=values["radius_scale"],
-            fruit_count=values["fruit_count"],
+            length_scale=values["scale"]["length"],
+            radius_scale=values["scale"]["radius"],
+            fruit_count=values["fruits"]["count"],
             dof_root=values.get("dof_root", ""),
             flex_root=values.get("flex_root", ""),
             fruit_branch=values.get("fruit_branch", ""),
