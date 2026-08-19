@@ -27,6 +27,21 @@ class LSystemConfig:
     tree_count: int
     relative_std: float
 
+    @classmethod
+    def from_dict(cls, values:dict) -> "LSystemConfig":
+        return cls(
+            axiom=values["axiom"],
+            generations=values["generations"],
+            tropism=values["tropism"],
+            bending=values["bending"],
+            initial_angle=values["initial_angle"],
+            angle_std=values["angle_std"],
+            rules=[_Rule(rule["pred"], rule["succ"]) for rule in values["rules"]],
+            free_params={name: value for item in values["free_params"] for name, value in item.items()},
+            tree_count=values["tree_count"],
+            relative_std=values["relative_std"],
+        )
+
 
 @dataclass
 class TreeConfig:
@@ -39,8 +54,19 @@ class TreeConfig:
     flex_root: str = ""
     fruit_branch: str = ""
 
+    @classmethod
+    def from_dict(cls, values:dict) -> "TreeConfig":
+        return cls(
+            length_scale=values["length_scale"],
+            radius_scale=values["radius_scale"],
+            fruit_count=values["fruit_count"],
+            dof_root=values.get("dof_root", ""),
+            flex_root=values.get("flex_root", ""),
+            fruit_branch=values.get("fruit_branch", ""),
+        )
 
-def load_config(path):
+
+def load_config(path: str | Path) -> tuple[LSystemConfig, TreeConfig, str]:
     """Load the complete tree-generation configuration.
 
     Parameters
@@ -58,27 +84,5 @@ def load_config(path):
         Relative URDF output pattern.
     """
     tree = yaml.safe_load(Path(path).read_text())["tree"]
-    return _lsystem_config(tree["lsystem"]), _tree_config(tree), tree["outfile"]
+    return LSystemConfig.from_dict(tree["lsystem"]), TreeConfig.from_dict(tree), tree["outfile"]
 
-
-def _lsystem_config(values):
-    return LSystemConfig(
-        axiom=values["axiom"],
-        generations=values["generations"],
-        tropism=values["tropism"],
-        bending=values["bending"],
-        initial_angle=values["initial_angle"],
-        angle_std=values["angle_std"],
-        rules=[_Rule(rule["pred"], rule["succ"]) for rule in values["rules"]],
-        free_params={name: value for item in values["free_params"] for name, value in item.items()},
-        tree_count=values["tree_count"],
-        relative_std=values["relative_std"],
-    )
-
-
-def _tree_config(tree):
-    return TreeConfig(
-        length_scale=tree["scale"]["length"],
-        radius_scale=tree["scale"]["radius"],
-        fruit_count=tree["fruits"]["count"],
-    )
