@@ -7,7 +7,7 @@ import yaml
 
 
 @dataclass
-class _Rule:
+class Rule:
     pred: str
     succ: str
 
@@ -22,9 +22,8 @@ class LSystemConfig:
     bending: float
     initial_angle: float
     angle_std: float
-    rules: list[_Rule]
+    rules: list[Rule]
     free_params: dict[str, float]
-    tree_count: int
     relative_std: float
 
     @classmethod
@@ -36,9 +35,8 @@ class LSystemConfig:
             bending=values["bending"],
             initial_angle=values["initial_angle"],
             angle_std=values["angle_std"],
-            rules=[_Rule(rule["pred"], rule["succ"]) for rule in values["rules"]],
+            rules=[Rule(rule["pred"], rule["succ"]) for rule in values["rules"]],
             free_params={name: value for item in values["free_params"] for name, value in item.items()},
-            tree_count=values["tree_count"],
             relative_std=values["relative_std"],
         )
 

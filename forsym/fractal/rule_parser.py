@@ -1,7 +1,7 @@
 import re
 
 
-def tokenize(string):
+def tokenize(string: str) -> list[str]:
     """'F(c)[+X]F(de)[-X]+X' => ['F(c)', '[', '+', 'X', ']', 'F(de)', '[', '-', 'X', ']', '+', 'X']"""
     pattern = r"[A-Z,+,/,-,&,^]\([^()]+\)|."
     matches = re.findall(pattern, string)
@@ -12,14 +12,14 @@ def tokenize(string):
     return matches
 
 
-def extract_operand(succ):
+def extract_operand(succ: str) -> str:
     """'F(c+1, w*2)' => 'F({})'"""
     pattern = r"\([^()]+\)"
     replaced = re.sub(pattern, "({})", succ)
     return replaced
 
 
-def extract_values(token):
+def extract_values(token: str) -> list[float] | None:
     """F(12,200) => [12, 200]"""
     pattern = r"\(([-?\d\s.,]+)\)"
     match = re.search(pattern, token)
@@ -29,7 +29,7 @@ def extract_values(token):
     return None
 
 
-def extract_idents(pred):
+def extract_idents(pred: str) -> list[str] | None:
     """F(c,w) => [c, w]"""
     pattern = r"\(([\w\s,]+)\)"
     match = re.search(pattern, pred)
@@ -39,7 +39,7 @@ def extract_idents(pred):
     return None
 
 
-def check_format(pred, token):
+def check_format(pred:str, token:str) -> tuple[bool, dict]:
     """Match a parameterized L-system token against a predecessor.
 
     Parameters
@@ -78,7 +78,7 @@ def check_format(pred, token):
     return False, params
 
 
-def extract_evals(succ):
+def extract_evals(succ:str) -> list[str]:
     """Extract the evaluation string from the rule list
     E.g. F(c+1, w*2)" => ['c+1', 'w*2']"""
     pattern = r"\(([^()]+)\)"

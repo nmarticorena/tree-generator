@@ -1,4 +1,8 @@
 """Convert interpreted turtle geometry into physical tree nodes."""
+from typing_extensions import Generator
+from random import Random
+import numpy as np
+from forsym.tree.config import TreeConfig, LSystemConfig
 
 import copy
 
@@ -7,7 +11,7 @@ from forsym.tree.domain import Fruit, JointType, TreeBranch
 from forsym.utils import rotation
 
 
-def check_joint_type(tree_branch_parent, t_config, child_cnt):
+def get_joint_type(tree_branch_parent: TreeBranch, t_config: TreeConfig, child_cnt: int) -> JointType:
     """Choose the joint connecting a branch to its parent.
 
     Parameters
@@ -40,7 +44,7 @@ def check_joint_type(tree_branch_parent, t_config, child_cnt):
     return JointType.fixed
 
 
-def add_fruits(root, t_config, rng):
+def add_fruits(root:TreeBranch, t_config:TreeConfig, rng:Random):
     """Attach configured fruit nodes to selected branches.
 
     Parameters
@@ -74,7 +78,7 @@ def add_fruits(root, t_config, rng):
     return fruit_index
 
 
-def sample_fruit_locations(length, count, rng):
+def sample_fruit_locations(length: float, count:int, rng:Random) -> list[float]:
     """Sample fruit positions from the outer thirds of a branch.
 
     Parameters
@@ -110,7 +114,7 @@ def _random_xy(options, rng):
     return (x, y) if rng.choice((True, False)) else (y, x)
 
 
-def gen_branch_graph(t_root: TurtleBranch, t_config):
+def gen_branch_graph(t_root: TurtleBranch, t_config: TreeConfig) -> TreeBranch: 
     """Convert turtle geometry into a physical tree hierarchy.
 
     Parameters
@@ -165,7 +169,7 @@ def gen_branch_graph(t_root: TurtleBranch, t_config):
             branch_angle_rpy=angle,
             branch_rotation_axis=(0, 1, 0),
             parent=parent_branch,
-            joint_type=check_joint_type(parent_branch, t_config, len(turtle_branch.children)),
+            joint_type=get_joint_type(parent_branch, t_config, len(turtle_branch.children)),
         )
 
         branch_store[turtle_branch] = branch
@@ -173,7 +177,7 @@ def gen_branch_graph(t_root: TurtleBranch, t_config):
     return trunk
 
 
-def iter_lsystem_configs(l_config, rng):
+def iter_lsystem_configs(l_config: LSystemConfig, max_trees: int, rng:np.random.Generator) -> Generator[LSystemConfig]:
     """Yield the configured L-system parameter sets.
 
     Parameters
@@ -194,18 +198,12 @@ def iter_lsystem_configs(l_config, rng):
     ValueError
         If the configured sample count is not positive.
     """
-    if l_config.tree_count < 1:
-        raise ValueError("tree_count must be at least 1")
-
-    if l_config.tree_count == 1:
-        yield l_config
-        return
 
     def _sample(value):
         spread = l_config.relative_std * abs(value)
         return round(value + rng.normal(0, spread), 2)
 
-    for _ in range(l_config.tree_count):
+    for _ in range(max_trees):
         l_clone = copy.deepcopy(l_config)
         l_clone.free_params = {name: _sample(value) for name, value in l_config.free_params.items()}
         l_clone.bending = _sample(l_config.bending)

@@ -1,18 +1,11 @@
+from forsym.tree.config import LSystemConfig
 from forsym.fractal import rule_parser as parser
 
 
-def _evaluate(successor, parameters):
-    tokens = []
-    for token in parser.tokenize(successor):
-        operand = parser.extract_operand(token)
-        if "(" in operand and ")" in operand:
-            values = [eval(expression, parameters) for expression in parser.extract_evals(token)]
-            operand = operand.format(",".join(map(str, values)))
-        tokens.append(operand)
-    return "".join(tokens)
 
 
-def expand_lsystem(l_config):
+
+def expand_lsystem(l_config:LSystemConfig):
     """Expand a configured L-system to its final generation.
 
     Parameters
@@ -25,6 +18,16 @@ def expand_lsystem(l_config):
     str
         Fully expanded L-system string.
     """
+    def _evaluate(successor, parameters):
+        tokens = []
+        for token in parser.tokenize(successor):
+            operand = parser.extract_operand(token)
+            if "(" in operand and ")" in operand:
+                values = [eval(expression, parameters) for expression in parser.extract_evals(token)]
+                operand = operand.format(",".join(map(str, values)))
+            tokens.append(operand)
+        return "".join(tokens)
+    
     l_string = l_config.axiom
 
     for _ in range(l_config.generations):

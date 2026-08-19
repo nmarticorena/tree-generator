@@ -1,3 +1,5 @@
+from random import Random
+from forsym.tree.config import LSystemConfig
 import math
 
 from anytree import NodeMixin
@@ -85,6 +87,7 @@ class TurtleLine:
         return self.start == other.start and self.end == other.end
 
     def __hash__(self):
+        assert self.start is not None and self.end is not None, "Cannot hash a TurtleLine with None endpoints."
         return hash((self.start.x, self.start.y, self.start.z, self.end.x, self.end.y, self.end.z))
 
 
@@ -104,7 +107,7 @@ class TurtleBranch(NodeMixin):
         return hash(self.turtle_line)
 
 
-def translate(point, length, heading):
+def translate(point:Point, length:float, heading:list[float]) -> Point:
     """Translate a point along a heading vector.
 
     Parameters
@@ -127,7 +130,7 @@ def translate(point, length, heading):
     return Point(x, y, z)
 
 
-def l_string_to_turtle_lines(l_string, l_config, rng):
+def l_string_to_turtle_lines(l_string:str, l_config:LSystemConfig, rng:Random) -> list[TurtleLine]:
     """Interpret an expanded L-system as turtle line segments.
 
     Parameters
@@ -210,7 +213,7 @@ def l_string_to_turtle_lines(l_string, l_config, rng):
     return t_lines
 
 
-def turtle_lines_to_branches(turtle_lines: list[TurtleLine]):
+def turtle_lines_to_branches(turtle_lines: list[TurtleLine])-> TurtleBranch:
     """Build a branch hierarchy from connected turtle lines.
 
     Parameters
