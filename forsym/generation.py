@@ -7,13 +7,72 @@ import itertools
 import random
 from collections.abc import Iterator, Sequence
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
+import tyro
 
 from forsym.fractal import rewriter
 from forsym.tree import assembly, pipeline
 from forsym.tree.config import TreeGenerationConfig
 
+def generate_tree(args) -> Path:
+    """Generate one tree inside a worker process."""
+    (
+        index,
+        varied_config,
+        tree_config,
+        output_pattern,
+        output_root,
+        seed,
+    ) = args
+
+    l_string = rewriter.expand_lsystem(varied_config)
+
+    return pipeline.generate_tree_urdf(
+        index=index,
+        l_string=l_string,
+        l_config=varied_config,
+        tree_config=tree_config,
+        output_pattern=output_pattern,
+        output_root=output_root,
+        rng=random.Random(seed + index),
+    ).resolve()
+
+def generate_all_trees(
+    n_trees: int = 100,
+    config: TreeGenerationConfig = TreeGenerationConfig.default(),
+    output_root: str | Path = "generated",
+    seed: int = 42,
+    workers: int | None = None,
+) -> list[Path]:
+    """Generate all trees in parallel."""
+    print(f"Generating {n_trees} trees with {workers} workers...")
+    output_root = Path(output_root).expanduser().resolve()
+    _validate_output_pattern(config.output_pattern)
+
+    numpy_rng = np.random.default_rng(seed)
+
+    jobs = [
+        (
+            index,
+            varied_config,
+            config.tree,
+            config.output_pattern,
+            output_root,
+            seed,
+        )
+        for index, varied_config in enumerate(
+            assembly.iter_lsystem_configs(
+                config.lsystem,
+                n_trees,
+                numpy_rng,
+            )
+        )
+    ]
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(generate_tree, jobs))
 
 def generate_trees(
     n_trees: int = 100,
@@ -63,28 +122,11 @@ def generate_trees(
         ).resolve()
 
 
-def main(argv: Sequence[str] | None = None) -> int:
-    """Generate every tree configured by a YAML file from the command line.
-
-    Parameters
-    ----------
-    argv : sequence of str, optional
-        Arguments to parse instead of :data:`sys.argv`.
-
-    Returns
-    -------
-    int
-        Zero after every configured tree has been generated.
-    """
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-root", type=Path, default=Path("generated"))
-    parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args(argv)
-
-    for path in generate_trees(args.config, output_root=args.output_root, seed=args.seed):
-        print(path)
-    return 0
-
+def main():
+    import time
+    ti = time.perf_counter()
+    tyro.cli(generate_all_trees)
+    print(f"Finished generating trees in {time.perf_counter() - ti:.2f} seconds")
 
 def _validate_output_pattern(pattern: str) -> None:
     path = Path(pattern)
@@ -102,4 +144,5 @@ __all__ = ["generate_trees"]
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    for p in tyro.cli(generate_trees):
+        print(p)
