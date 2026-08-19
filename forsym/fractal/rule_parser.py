@@ -40,9 +40,27 @@ def extract_idents(pred):
 
 
 def check_format(pred, token):
-    """Check if the pred & token formats match and if yes return the dict of values
-    E.g. pred = 'F(c)', token = 'F(200.3)' =>  True, {'c': 200.3}
-    E.g. pred = 'X(c,w)', token = 'F(12.23, 200.43)' =>  False, {}"""
+    """Match a parameterized L-system token against a predecessor.
+
+    Parameters
+    ----------
+    pred : str
+        Rule predecessor, such as ``"F(c,w)"``.
+    token : str
+        Expanded token, such as ``"F(12.23,200.43)"``.
+
+    Returns
+    -------
+    matched : bool
+        Whether the operand names and parameter counts match.
+    parameters : dict
+        Mapping from predecessor identifiers to token values.
+
+    Raises
+    ------
+    ValueError
+        If matching operands contain different numbers of parameters.
+    """
 
     idents = extract_idents(pred)
     values = extract_values(token)

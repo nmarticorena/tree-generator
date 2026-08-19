@@ -1,111 +1,108 @@
+"""Public entry point for lazy, YAML-driven tree generation."""
+
 from __future__ import annotations
 
+import argparse
 import random
-import shutil
-from dataclasses import dataclass
+from collections.abc import Iterator, Sequence
 from pathlib import Path
 
 import numpy as np
 
-from forsym.lsystems2.assemblers import pipeline_runner, tree_generator
-from forsym.lsystems2.conf import yaml_parser
+from forsym.fractal import rewriter
+from forsym.tree import assembly, pipeline
+from forsym.tree.config import load_config
 
-BUILTIN_CONFIG_ROOT = Path(__file__).resolve().parent / "lsystems2" / "conf"
-
-
-@dataclass
-class TreeGenerationConfig:
-    """Configuration for generating a PCAP-style tree asset."""
-
-    source_asset: Path
-    output_dir: Path
-    seed: int = 0
-    output_name: str | None = None
-
-    @property
-    def output_path(self) -> Path:
-        name = self.output_name or f"pcap_tree_seed_{self.seed}.urdf"
-        return self.output_dir / name
-
-
-def generate_tree_asset(config: TreeGenerationConfig) -> Path:
-    """Generate a deterministic tree asset and return its path."""
-
-    source = config.source_asset.expanduser().resolve()
-    output = config.output_path.expanduser().resolve()
-    if not source.exists():
-        raise FileNotFoundError(f"Tree source asset does not exist: {source}")
-
-    output.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, output)
-    return output
+DEFAULT_CONFIG = Path(__file__).resolve().parent / "tree" / "ternary_tree.yaml"
 
 
 def generate_trees(
-    tree_type: str | Path,
-    output_root: str | Path,
+    config: str | Path = DEFAULT_CONFIG,
     *,
-    count: int | None = None,
+    output_root: str | Path = "generated",
     seed: int = 42,
-) -> list[Path]:
-    """Generate URDF trees selected by a built-in name or YAML configuration path."""
-    config_path = _tree_config_path(tree_type)
+) -> Iterator[Path]:
+    """Yield simulation-ready tree URDFs described by a YAML file.
+
+    Generation is lazy: each call to :func:`next` expands, assembles, and
+    writes one tree. The YAML ``tree_count`` value controls how many URDFs
+    the iterator yields.
+
+    Parameters
+    ----------
+    config : str or pathlib.Path, default=DEFAULT_CONFIG
+        Tree configuration to read.
+    output_root : str or pathlib.Path, default="generated"
+        Directory below which the YAML output pattern is created.
+    seed : int, default=42
+        Seed for local Python and NumPy random-number generators.
+
+    Yields
+    ------
+    pathlib.Path
+        Absolute path to each generated URDF.
+    """
+    config = Path(config).expanduser().resolve()
     output_root = Path(output_root).expanduser().resolve()
-    if count is not None and count < 1:
-        raise ValueError("count must be at least 1")
+    python_rng = random.Random(seed)
+    numpy_rng = np.random.default_rng(seed)
 
-    python_state, numpy_state = random.getstate(), np.random.get_state()
-    try:
-        random.seed(seed)
-        np.random.seed(seed)
-        lsystem_config = yaml_parser.yaml_to_lsystem(config_path)
-        if count is not None:
-            lsystem_config.randomise = count > 1
-            lsystem_config.randomise_cnt = count
-        tree_config = yaml_parser.yaml_to_tree_config(config_path)
-        output_pattern = yaml_parser.out_file(config_path)
-        l_strings, l_configs = tree_generator.yaml_to_l_string(lsystem_config)
-        _validate_output_pattern(output_pattern, len(l_strings))
-        return [
-            pipeline_runner.par_processor(
-                index,
-                l_string,
-                tree_config,
-                output_pattern,
-                l_configs,
-                generated_root=output_root,
-            ).resolve()
-            for index, l_string in enumerate(l_strings)
-        ]
-    finally:
-        tree_generator.TreeBranch.unique = -1
-        random.setstate(python_state)
-        np.random.set_state(numpy_state)
+    lsystem_config, tree_config, output_pattern = load_config(config)
+    _validate_output_pattern(output_pattern, lsystem_config.tree_count)
+
+    for index, varied_config in enumerate(assembly.iter_lsystem_configs(lsystem_config, numpy_rng)):
+        l_string = rewriter.expand_lsystem(varied_config)
+        yield pipeline.generate_tree_urdf(
+            index=index,
+            l_string=l_string,
+            l_config=varied_config,
+            tree_config=tree_config,
+            output_pattern=output_pattern,
+            output_root=output_root,
+            rng=python_rng,
+        ).resolve()
 
 
-def _tree_config_path(tree_type: str | Path) -> Path:
-    requested = Path(tree_type).expanduser()
-    if requested.is_file():
-        return requested.resolve()
-    if requested.parent != Path("."):
-        raise FileNotFoundError(f"Tree configuration does not exist: {requested}")
-    name = requested.name if requested.suffix else f"{requested.name}.yaml"
-    built_in = BUILTIN_CONFIG_ROOT / name
-    if not built_in.is_file():
-        available = ", ".join(path.stem for path in sorted(BUILTIN_CONFIG_ROOT.glob("*.yaml")))
-        raise ValueError(f"Unknown tree type {requested.stem!r}. Available built-ins: {available}")
-    return built_in.resolve()
+def main(argv: Sequence[str] | None = None) -> int:
+    """Generate every tree configured by a YAML file from the command line.
+
+    Parameters
+    ----------
+    argv : sequence of str, optional
+        Arguments to parse instead of :data:`sys.argv`.
+
+    Returns
+    -------
+    int
+        Zero after every configured tree has been generated.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("config", nargs="?", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument("--output-root", type=Path, default=Path("generated"))
+    parser.add_argument("--seed", type=int, default=42)
+    args = parser.parse_args(argv)
+
+    for path in generate_trees(args.config, output_root=args.output_root, seed=args.seed):
+        print(path)
+    return 0
 
 
 def _validate_output_pattern(pattern: str, count: int) -> None:
     path = Path(pattern)
     if path.is_absolute() or ".." in path.parts:
-        raise ValueError("The YAML outfile must be relative to output_root")
-    if count > 1 and "{r_idx" not in pattern:
-        raise ValueError("The YAML outfile must contain an {r_idx} placeholder when generating multiple trees")
+        raise ValueError("The YAML outfile must stay below output_root")
+    if count > 1 and "{index" not in pattern:
+        raise ValueError("The YAML outfile must contain an {index} placeholder for multiple trees")
+    try:
+        formatted = pattern.format(index=0)
+    except (KeyError, ValueError) as error:
+        raise ValueError(f"Invalid YAML outfile pattern: {pattern!r}") from error
+    if not Path(formatted).name:
+        raise ValueError("The YAML outfile must name a URDF file")
+
+
+__all__ = ["DEFAULT_CONFIG", "generate_trees"]
 
 
 if __name__ == "__main__":
-    # Example usage
-    import tyro
-    tyro.cli(generate_tree_asset)
+    raise SystemExit(main())
