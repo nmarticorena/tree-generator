@@ -11,9 +11,9 @@ tree:
       - vr: 1.732  # width decrease rate
 
     axiom: N(1)F(200)/(45)A
-    generations: 6
+    generations: 6 # n in the book
     tropism: [0, 0, -1.0] # The book said [0,-1,0] but is due to where the gravity is set
-    bending: 0.22
+    bending: 0.22 # e in the book
     initial_angle: 30
     angle_std: 11.25
 
