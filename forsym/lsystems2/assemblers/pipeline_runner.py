@@ -1,20 +1,21 @@
 """File to test TurtleState => TurtleBranch => TreeBranch pipeline"""
-import forsym
 
-import functools
 import copy
+import functools
 import pickle
 import random
-from pathlib import Path
-from anytree import RenderTree
+import sys
 from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 
-from forsym.common.domains import LShape, TreeMetaAttrs
+from anytree import RenderTree
+
+import forsym
+import forsym.lsystems2.conf.yaml_parser as parser
 from forsym.common import futils
+from forsym.common.domains import LShape, TreeMetaAttrs
 from forsym.fractal import turtle
 from forsym.lsystems2.assemblers import tree_generator, urdf_generator
-
-import forsym.lsystems2.conf.yaml_parser as parser
 from forsym.lsystems2.assemblers.domain import NodeType
 
 random.seed(42)
@@ -36,7 +37,7 @@ def find_dof_roots(_t_root, _tree_config, _l_configs):
             _dof_root_cnts.append((m_node, len(m_node.descendants)))
 
     _dof_root_cnt_vals = [t[1] for t in _dof_root_cnts]
-    print(f"Root dof count option set:", {*_dof_root_cnt_vals})
+    print("Root dof count option set:", {*_dof_root_cnt_vals})
 
     _root_option = random.choice([t for t in _dof_root_cnts])
     _dof_root_sel, _dof_root_sel_cnt = _root_option[0], _root_option[1]
@@ -105,12 +106,12 @@ def count_descendants_with_children(node):
     return count
 
 
-def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs):
+def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs, generated_root=GENERATED_ROOT):
     tree_generator.TreeBranch.unique = -1
 
     tree_config = copy.deepcopy(tree_config_base)
     outfile = outfile_base.format(r_idx=r_idx) if "r_idx" in outfile_base else outfile_base
-    output_path = GENERATED_ROOT / outfile
+    output_path = Path(generated_root) / outfile
 
     tree_generator.write_to_file(string=l_string, out_file=output_path.with_name(f"{output_path.stem}_l_string.txt"))
 
@@ -124,7 +125,7 @@ def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs):
 
     tree_generator.write_to_file(string=turtle_graph, out_file=output_path.with_name(f"{output_path.stem}_t_graph.txt"))
 
-    if tree_config.dof_root is None or "auto":
+    if tree_config.dof_root == "auto" or tree_config.flex_root == "auto":
         dof_root_sel, dof_flex_sel, fruit_branches_sel = find_dof_roots(t_root, tree_config, l_configs[r_idx])
         tree_config.dof_root = dof_root_sel
         tree_config.flex_root = dof_flex_sel
@@ -133,10 +134,7 @@ def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs):
     trunk = tree_generator.turtle_branch_to_tree(t_root=t_root, t_config=tree_config)
 
     l_shape_dict = {}
-    for pre, fill, node in RenderTree(trunk):
-        tree_str = "%s%s" % (pre, node.name)
-        # print(tree_str.ljust(8), node.idx, len(node.descendants))
-
+    for _, _, node in RenderTree(trunk):
         if NodeType.from_node(node) == NodeType.branch:  # skip leaves/fruits
             l_shape_dict[node.name] = LShape(node.length, node.radius)
 
@@ -149,14 +147,16 @@ def par_processor(r_idx, l_string, tree_config_base, outfile_base, l_configs):
 
     urdf_generator.gen_urdf(trunk, output_path, tree_config.spherical_dim)
     print("-----------------------------------------------------------------------------------------------------")
+    return output_path
+
 
 def main():
-    user_input = input(f"Files will be overwritten. Do you want to continue? (yes/no): ").strip().lower()
+    user_input = input("Files will be overwritten. Do you want to continue? (yes/no): ").strip().lower()
     if user_input not in ("yes", "no"):
         print("Please enter 'yes' or 'no'.")
 
     if user_input != "yes":
-        quit()
+        sys.exit()
 
     _lsystem_config_base = parser.yaml_to_lsystem()
     _tree_config_base = parser.yaml_to_tree_config()
@@ -189,15 +189,13 @@ def main():
                 print("Please enter 'yes' or 'no'.")
 
             if user_input != "yes":
-                quit()
+                sys.exit()
 
     for to_clean in all_par_folders:
         to_clean_ldir = _ldir(to_clean)
-        if to_clean_ldir in ["raw_train", "train"] and in_raw_dir_type == "raw_train":
-            futils.cleanup_sub_folders_n_files(to_clean, folder_prefix="ta_", file_types=(".pkl", ".npy"))
-        elif to_clean_ldir in ["raw_test", "test"] and in_raw_dir_type == "raw_test":
-            futils.cleanup_sub_folders_n_files(to_clean, folder_prefix="ta_", file_types=(".pkl", ".npy"))
-        elif to_clean_ldir == "temp":
+        matches_train = to_clean_ldir in ["raw_train", "train"] and in_raw_dir_type == "raw_train"
+        matches_test = to_clean_ldir in ["raw_test", "test"] and in_raw_dir_type == "raw_test"
+        if matches_train or matches_test or to_clean_ldir == "temp":
             futils.cleanup_sub_folders_n_files(to_clean, folder_prefix="ta_", file_types=(".pkl", ".npy"))
 
     # Create a partial function that includes static parameters
@@ -206,7 +204,7 @@ def main():
     )
 
     with ProcessPoolExecutor(max_workers=6) as executor:
-        results = list(
+        list(
             executor.map(
                 partial_par_processor,
                 range(len(l_strings)),

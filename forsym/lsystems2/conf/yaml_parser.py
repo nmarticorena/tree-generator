@@ -65,18 +65,20 @@ class TreeConfig:
         self.include_leaves = None
 
 
-def config():
-    with open(yaml_path(), "r") as stream:
+def config(path=None):
+    with open(yaml_path(path), "r") as stream:
         return yaml.safe_load(stream)
 
 
-def yaml_path():
+def yaml_path(path=None):
+    if path is not None:
+        return path
     assert yaml_file is not None, " Set the yaml path first"
     return yaml_file
 
 
-def yaml_to_lsystem():
-    yaml_config = config()["tree"]["geometry"]
+def yaml_to_lsystem(path=None):
+    yaml_config = config(path)["tree"]["geometry"]
     l_config = LSystemConfig()
     l_config.axiom = yaml_config["lsystem"]["axiom"]
     l_config.n = yaml_config["lsystem"]["n"]
@@ -102,8 +104,8 @@ def yaml_to_lsystem():
     return l_config
 
 
-def yaml_to_tree_config():
-    yaml_config = config()["tree"]["geometry"]
+def yaml_to_tree_config(path=None):
+    yaml_config = config(path)["tree"]["geometry"]
     t_config = TreeConfig()
     t_config.density = yaml_config["real"]["physics"]["density"]
     t_config.len_scale_factor = yaml_config["real"]["len_scale_factor"]
@@ -126,6 +128,6 @@ def yaml_to_tree_config():
     return t_config
 
 
-def out_file():
-    yaml_config = config()["tree"]
+def out_file(path=None):
+    yaml_config = config(path)["tree"]
     return yaml_config["outfile"]
