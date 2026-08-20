@@ -32,6 +32,6 @@ tree:
     radius: 0.0050
 
   fruits:
-    count: 3
+    count: 1
 
   outfile: trees/tree_{index:04d}.urdf
