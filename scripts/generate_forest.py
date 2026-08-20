@@ -10,7 +10,6 @@ def main() -> None:
     # You can also lazy-load the trees; here we reuse the already-generated list.
     for tree in urdfs:
         print(tree)
-    
 
 
 if __name__ == "__main__":
