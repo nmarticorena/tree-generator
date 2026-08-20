@@ -2,9 +2,11 @@
 
 import copy
 from pathlib import Path
+from random import Random
 
 from forsym.fractal import turtle
 from forsym.tree import assembly, writer
+from forsym.tree.config import LSystemConfig, TreeConfig
 
 
 def select_flexible_root(t_root, tree_config, rng):
@@ -48,7 +50,7 @@ def select_flexible_root(t_root, tree_config, rng):
     return flexible_root.name, fruit_branch.name
 
 
-def generate_tree_urdf(index, l_string, l_config, tree_config, output_pattern, output_root, rng):
+def generate_tree_urdf(index:int, l_string:str, l_config:LSystemConfig, tree_config:TreeConfig, output_pattern:str, output_root:str|Path, rng:Random, remove_col: bool = True) -> Path:
     """Assemble one expanded L-system and write its tree URDF.
 
     Parameters
@@ -67,6 +69,9 @@ def generate_tree_urdf(index, l_string, l_config, tree_config, output_pattern, o
         Root directory for generated files.
     rng : random.Random
         Local random-number generator used for geometry and fruit placement.
+    remove_col : bool, default=True
+        Remove collision of fixed branches that are not parents of the 
+        flexible subtree
 
     Returns
     -------
