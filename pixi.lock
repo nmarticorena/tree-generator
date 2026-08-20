@@ -190,7 +190,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/noarch/wcwidth-0.8.2-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/zipp-4.1.0-pyhcf101f3_0.conda
       - pypi: ./
-      - pypi: git+https://github.com/kscalelabs/urdf2mjcf.git#7954f8b2ba6591cd2666f3b485486819f5aed655
       - pypi: https://files.pythonhosted.org/packages/05/98/716a473cfb24750858ddd5d14e6527539dd206583a46408d08eeb2844a75/trimesh-4.12.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl
@@ -354,7 +353,6 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/warp-lang-1.16.0-cpu_py314h9af2b5b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hf451053_7.conda
       - pypi: ./
-      - pypi: git+https://github.com/kscalelabs/urdf2mjcf.git#7954f8b2ba6591cd2666f3b485486819f5aed655
       - pypi: https://files.pythonhosted.org/packages/05/98/716a473cfb24750858ddd5d14e6527539dd206583a46408d08eeb2844a75/trimesh-4.12.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0f/45/ebec83e6269536aa5932533c67b0af5c781f3e73fdbcd68672dcf43f4f44/websockets-16.1.1-cp314-cp314-macosx_11_0_arm64.whl
@@ -4472,22 +4470,6 @@ packages:
   - robot-descriptions>=3.1,<4 ; extra == 'teleoperation'
   - forsym[mujoco-warp,teleoperation] ; extra == 'all'
   requires_python: '>=3.10'
-- pypi: git+https://github.com/kscalelabs/urdf2mjcf.git#7954f8b2ba6591cd2666f3b485486819f5aed655
-  name: urdf2mjcf
-  version: 0.2.39
-  requires_dist:
-  - colorlogging
-  - mujoco
-  - numpy
-  - pydantic
-  - scipy
-  - trimesh
-  - black ; extra == 'dev'
-  - darglint ; extra == 'dev'
-  - mypy ; extra == 'dev'
-  - pytest ; extra == 'dev'
-  - ruff ; extra == 'dev'
-  requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/05/98/716a473cfb24750858ddd5d14e6527539dd206583a46408d08eeb2844a75/trimesh-4.12.2-py3-none-any.whl
   name: trimesh
   version: 4.12.2
