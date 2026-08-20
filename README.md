@@ -16,7 +16,7 @@ then install the project "globally" you can run the following:
 pixi global install --path .
 ```
 
-This will compile the library and install it under a `conda` package, this will create a virtual environment that will just install this tool indenpdently.
+This will compile the library and install it under a `conda` package, this will create a virtual environment that will just install this tool independently.
 
 ### Local install
 If you are using the package locally you can install it as
