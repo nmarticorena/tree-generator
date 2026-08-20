@@ -7,29 +7,31 @@ dependencies = [
   "anytree",
   "pyyaml",
   "numpy>=2,<3",
-  "tyro"
+  "tyro",
+  "usd-core",
+  "urdf-usd-converter",
 ]
 
 [project.optional-dependencies]
 mujoco = [
-  "mujoco>=3.11,<4",
+  "mujoco>=3",
 ]
 mujoco-warp = [
   "mjviser>=0.0.14",
-  "mujoco>=3.11,<4",
+  "mujoco>=3,<4",
   "mujoco-warp",
 ]
 teleoperation = [
   "mjviser>=0.0.14",
   "mink>=1.2,<2",
-  "mujoco>=3.11,<4",
+  "mujoco>=3,<4",
   "robot-descriptions>=3.1,<4",
 ]
 all = ["forsym[mujoco-warp,teleoperation]"]
 
 [project.scripts]
-forsym-view-forest = "forsym.visualisation.mujoco_warp_viewer:main"
-forsym-teleop-franka = "forsym.visualisation.mink_franka_viewer:main"
+# forsym-view-forest = "forsym.visualisation.mujoco_warp_viewer:main"
+# forsym-teleop-franka = "forsym.visualisation.mink_franka_viewer:main"
 forsym-generate-trees = "forsym.generation:main"
 
 [build-system]
