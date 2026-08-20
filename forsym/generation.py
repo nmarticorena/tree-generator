@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import argparse
-import itertools
 import random
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 
@@ -138,9 +136,6 @@ def _validate_output_pattern(pattern: str) -> None:
         raise ValueError(f"Invalid outfile pattern: {pattern!r}") from error
     if not Path(formatted).name:
         raise ValueError("The outfile must name a URDF file")
-
-
-__all__ = ["generate_trees"]
 
 
 if __name__ == "__main__":
