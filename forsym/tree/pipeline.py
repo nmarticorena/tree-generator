@@ -91,5 +91,5 @@ def generate_tree_urdf(index:int, l_string:str, l_config:LSystemConfig, tree_con
 
     trunk = assembly.gen_branch_graph(t_root, tree_config)
     assembly.add_fruits(trunk, tree_config, rng)
-    writer.gen_urdf(trunk, output_path)
+    writer.gen_urdf(trunk, output_path, prune_collision=remove_col)
     return output_path
