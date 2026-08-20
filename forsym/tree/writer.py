@@ -9,8 +9,15 @@ from types import SimpleNamespace
 
 from forsym.tree.domain import Fruit, JointType, TreeBranch
 
+def should_prune_collision(node: TreeBranch) -> bool:
+    """Return whether a fixed branch should be visual-only."""
+    return (
+        node.joint_type == JointType.fixed
+        and node.parent is not None
+        and node.parent.parent is not None
+    )
 
-def gen_urdf(graph, output_path):
+def gen_urdf(graph, output_path, prune_collision: bool = True):
     """Write a branch-and-fruit hierarchy as a URDF tree.
 
     Parameters
@@ -25,13 +32,13 @@ def gen_urdf(graph, output_path):
     queue = deque([graph])
     while queue:
         node = queue.popleft()
-        add_child(node, outline, templates)
+        add_child(node, outline, templates,prune_collision)
         queue.extend(node.children)
 
     _write_urdf(outline, output_path)
 
 
-def add_child(node, outline, templates):
+def add_child(node, outline, templates, prune_collision: bool = True):
     """Append one branch or fruit to a partially assembled URDF.
 
     Parameters
@@ -42,6 +49,8 @@ def add_child(node, outline, templates):
         URDF robot element updated in place.
     templates : types.SimpleNamespace
         Branch, spherical-joint, and fruit templates.
+    prune_collision : bool, default=False
+        Remove collision.
 
     Raises
     ------
@@ -52,6 +61,11 @@ def add_child(node, outline, templates):
     if isinstance(node, TreeBranch):
         joints = add_joint(node, templates.joint, templates.spherical)
         link = add_link(node, templates.link)
+        if (
+            prune_collision 
+            and should_prune_collision(node)
+        ):
+            _remove_element(link, "./collision")
     elif isinstance(node, Fruit):
         joints = add_fruit_joint(node, templates.fruit_joint)
         link = add_fruit_link(node, templates.fruit_link)
