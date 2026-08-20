@@ -25,11 +25,14 @@ def override_mass_properties(stage: Usd.Stage, com=None, diagonal_inertia=None) 
         mass_api = UsdPhysics.MassAPI.Apply(prim)
         if com is not None:
             mass_api.CreateCenterOfMassAttr(com)
+            print(f"Set center of mass for {prim.GetPath()} to {com}")
         if diagonal_inertia is not None:
             mass_api.CreateDiagonalInertiaAttr(diagonal_inertia)
+            print(f"Set diagonal inertia for {prim.GetPath()} to {diagonal_inertia}")
 
 def prepare_asset(usd_path: str, armature: float = 0.01) -> str:
     stage = Usd.Stage.Open(usd_path)
     apply_armature(stage, armature)
+    override_mass_properties(stage)
     stage.Save()
     return usd_path
