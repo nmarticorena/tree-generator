@@ -52,6 +52,7 @@ The packaged ternary-tree generator is also available as a Python API:
 
 ```python
 from forsym import generate_trees
+from forsym.tree.config import TreeGenerationConfig
 config = TreeGenerationConfig.default() # Create instance with the default values from pcap
 # Config is heavily typed so you can explore the base config dataclass or use your auto complete to check configs
 urdfs = generate_trees(n_trees= 100, config=config, output_root="generated", seed=42)
