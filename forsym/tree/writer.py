@@ -265,16 +265,16 @@ def add_link(node, link_template):
     link = copy.deepcopy(link_template)
     center = f"0 0 {round(node.length / 2, 3)}"
     link.set("name", f"link-{node.name}")
-    _set_attribute(link, "./visual/geometry/cylinder", "length", str(node.length))
-    _set_attribute(link, "./visual/geometry/cylinder", "radius", str(node.radius))
+    _set_attribute(link, "./visual/geometry/capsule", "length", str(node.length))
+    _set_attribute(link, "./visual/geometry/capsule", "radius", str(node.radius))
     _set_attribute(link, "./visual/origin", "xyz", center)
 
     material_name, material_rgba = _material(node)
     _set_attribute(link, "./visual/material", "name", material_name)
     _set_attribute(link, "./visual/material/color", "rgba", material_rgba)
 
-    _set_attribute(link, "./collision/geometry/cylinder", "length", str(node.length))
-    _set_attribute(link, "./collision/geometry/cylinder", "radius", str(node.radius))
+    _set_attribute(link, "./collision/geometry/capsule", "length", str(node.length))
+    _set_attribute(link, "./collision/geometry/capsule", "radius", str(node.radius))
     _set_attribute(link, "./collision/origin", "xyz", center)
 
     return link

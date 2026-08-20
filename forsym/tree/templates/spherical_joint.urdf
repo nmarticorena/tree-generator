@@ -11,7 +11,7 @@
         <link name="sp-x-dummy-link">
             <visual>
                 <geometry>
-                    <cylinder length="0.01" radius="0.005"/>
+                    <capsule length="0.01" radius="0.005"/>
                 </geometry>
                 <origin xyz="0 0 0.005" rpy="0 0 0"/>
                 <material name="material_name">
@@ -20,7 +20,7 @@
             </visual>
             <collision>
                 <geometry>
-                    <cylinder length="0.01" radius="0.005"/>
+                    <capsule length="0.01" radius="0.005"/>
                 </geometry>
                 <origin xyz="0 0 0.005" rpy="0 0 0"/>
             </collision>
