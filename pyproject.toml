@@ -33,6 +33,7 @@ all = ["forsym[mujoco-warp,teleoperation]"]
 # forsym-view-forest = "forsym.visualisation.mujoco_warp_viewer:main"
 # forsym-teleop-franka = "forsym.visualisation.mink_franka_viewer:main"
 forsym-generate-trees = "forsym.generation:main"
+forsym-generate-mjcf = "forsym.generation:main_mujoco"
 
 [build-system]
 requires = ["hatchling"]

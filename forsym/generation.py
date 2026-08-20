@@ -1,6 +1,7 @@
 """Public entry point for lazy, YAML-driven tree generation."""
 
 from __future__ import annotations
+from forsym.mujoco_tools import export_tree_mjcf
 
 import random
 from collections.abc import Iterator
@@ -13,6 +14,7 @@ import tyro
 from forsym.fractal import rewriter
 from forsym.tree import assembly, pipeline
 from forsym.tree.config import TreeGenerationConfig
+
 
 def generate_tree(args) -> Path:
     """Generate one tree inside a worker process."""
@@ -37,6 +39,66 @@ def generate_tree(args) -> Path:
         rng=random.Random(seed + index),
     ).resolve()
 
+def generate_mujoco_mjcf(args) -> Path:
+    """Generate one tree inside a worker process."""
+    (
+        index,
+        varied_config,
+        tree_config,
+        output_pattern,
+        output_root,
+        seed,
+    ) = args
+
+    l_string = rewriter.expand_lsystem(varied_config)
+
+    urdf = pipeline.generate_tree_urdf(
+        index=index,
+        l_string=l_string,
+        l_config=varied_config,
+        tree_config=tree_config,
+        output_pattern=output_pattern,
+        output_root=output_root,
+        rng=random.Random(seed + index),
+    ).resolve()
+    return export_tree_mjcf(
+        source=urdf,
+        destination=None,
+    )
+
+def generate_mujoco(
+    n_trees: int = 100,
+    config: TreeGenerationConfig = TreeGenerationConfig.default(),
+    output_root: str | Path = "generated",
+    seed: int = 42,
+    workers: int | None = None,
+) -> list[Path]:
+    numpy_rng = np.random.default_rng(seed)
+    
+    jobs = [
+        (
+            index,
+            varied_config,
+            config.tree,
+            config.output_pattern,
+            output_root,
+            seed,
+        )
+        for index, varied_config in enumerate(
+            assembly.iter_lsystem_configs(
+                config.lsystem,
+                n_trees,
+                numpy_rng,
+            )
+        )
+    ]
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        return list(executor.map(generate_mujoco_mjcf, jobs))
+
+
+    
+    
 def generate_all_trees(
     n_trees: int = 100,
     config: TreeGenerationConfig = TreeGenerationConfig.default(),
@@ -107,7 +169,7 @@ def generate_trees(
     output_pattern = config.output_pattern
     _validate_output_pattern(output_pattern)
 
-    for index, varied_config in enumerate(assembly.iter_lsystem_configs(lsystem_config, n_trees ,numpy_rng)):
+    for index, varied_config in enumerate(assembly.iter_lsystem_configs(lsystem_config, n_trees, numpy_rng)):
         l_string = rewriter.expand_lsystem(varied_config)
         yield pipeline.generate_tree_urdf(
             index=index,
@@ -122,9 +184,18 @@ def generate_trees(
 
 def main():
     import time
+
     ti = time.perf_counter()
     tyro.cli(generate_all_trees)
     print(f"Finished generating trees in {time.perf_counter() - ti:.2f} seconds")
+
+def main_mujoco():
+    import time
+
+    ti = time.perf_counter()
+    tyro.cli(generate_mujoco)
+    print(f"Finished generating MJCF trees in {time.perf_counter() - ti:.2f} seconds")
+
 
 def _validate_output_pattern(pattern: str) -> None:
     path = Path(pattern)

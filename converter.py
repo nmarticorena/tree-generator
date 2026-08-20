@@ -16,13 +16,14 @@ from pxr import PhysxSchema, Usd, UsdPhysics
 
 
 def branch_level(joint_name: str) -> int:
-    """
-    Replace this with your existing rl_helper.branch_level implementation.
-    """
-    match = re.search(r"L(\d+)", joint_name)
+    """Extract the level from the child branch in a tree DOF name."""
+    match = re.search(r"to-branch-[^-]*L(?P<level>\d+)P", joint_name)
     if match is None:
-        raise ValueError(f"Cannot determine branch level from: {joint_name}")
-    return int(match.group(1))
+        raise ValueError(f"Cannot determine child branch level from: {joint_name}")
+    level = int(match.group("level"))
+    if not 0 < level <= 7:
+        raise ValueError(f"Branch level must be in 1..7, got {level}: {joint_name}")
+    return level
 
 
 def rud_deflection_param(
@@ -93,13 +94,10 @@ def configure_tree_joints(
         physx_joint.CreateArmatureAttr().Set(armature)
         physx_joint.CreateJointFrictionAttr().Set(friction)
 
-        print(
-            f"{name}: level={level}, "
-            f"kp={kp}, kd={kd}, "
-            f"friction={friction}, effort={effort_limit}"
-        )
+        print(f"{name}: level={level}, kp={kp}, kd={kd}, friction={friction}, effort={effort_limit}")
 
     stage.GetRootLayer().Save()
+
 
 def urdf_to_usd(
     urdf_path: str,
@@ -125,11 +123,11 @@ def urdf_to_usd(
         merge_fixed_joints=merge_fixed_joints,
         force_usd_conversion=True,
         joint_drive=UrdfConverterCfg.JointDriveCfg(
-        gains=UrdfConverterCfg.JointDriveCfg.PDGainsCfg(
-            stiffness=0.0,
-            damping=0.0,
+            gains=UrdfConverterCfg.JointDriveCfg.PDGainsCfg(
+                stiffness=0.0,
+                damping=0.0,
+            ),
         ),
-    ),
     )
 
     converter = UrdfConverter(cfg)
