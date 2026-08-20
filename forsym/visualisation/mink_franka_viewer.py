@@ -16,7 +16,7 @@ try:
     from mjviser import Viewer
     from robot_descriptions import panda_mj_description
 
-    from .tree_scene import GROUND, ROBOT, TREE, add_ground, load_tree, set_contacts, tune_tree
+    from .tree_scene import GROUND, ROBOT, TREE, add_ground, load_tree, set_contacts
 except ImportError:
     print(
         'Use Python 3.10--3.13 and install: pip install "forsym[teleoperation]"',
@@ -39,26 +39,47 @@ def build_franka(
     stiffness=400.0,
     damping=0.2,
 ) -> tuple[mujoco.MjModel, mujoco.MjModel]:
-    """Return the full contact model and a small Panda-only IK model."""
+    """Build the Franka contact scene and its Panda-only IK model.
+
+    Parameters
+    ----------
+    tree : pathlib.Path, optional
+        Generated tree URDF to add to the scene.
+    position : array-like, default=(1.15, 0.0, 0.0)
+        Tree base position in metres.
+    yaw : float, default=0.0
+        Tree rotation about the vertical axis in degrees.
+    stiffness : float, default=400.0
+        Base stiffness for flexible tree branches.
+    damping : float, default=0.2
+        Scale used to derive branch damping from stiffness.
+
+    Returns
+    -------
+    model : mujoco.MjModel
+        Compiled Panda, tree, target, and ground scene.
+    ik_model : mujoco.MjModel
+        Panda-only model used by the inverse-kinematics controller.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``tree`` is provided but does not exist.
+    ValueError
+        If a tree dynamics value is invalid.
+    """
     spec = _panda_spec()
     ik_model = spec.compile()
-    _complete_scene(spec, tree, position, yaw)
+    _complete_scene(spec, tree, position, yaw, stiffness, damping)
     model = spec.compile()
-    _configure_tree(model, tree, stiffness, damping)
     return model, ik_model
 
 
-def _complete_scene(spec, tree, position, yaw) -> None:
+def _complete_scene(spec, tree, position, yaw, stiffness, damping) -> None:
     add_ground(spec, contype=GROUND, conaffinity=ROBOT, color=(0.2, 0.24, 0.28, 1.0))
     _add_target(spec)
     if tree:
-        _attach_tree(spec, tree, position, yaw)
-
-
-def _configure_tree(model, tree, stiffness, damping) -> None:
-    if tree:
-        count = tune_tree(model, prefix="tree_", stiffness=stiffness, damping=damping)
-        print(f"Loaded {Path(tree).name} and configured {count} flexible joints.")
+        _attach_tree(spec, tree, position, yaw, stiffness, damping)
 
 
 def _panda_spec() -> mujoco.MjSpec:
@@ -86,13 +107,19 @@ def _add_target(spec) -> None:
         )
 
 
-def _attach_tree(spec, path, position, yaw) -> None:
-    _, tree, center, size = load_tree(Path(path), contacts=(TREE, ROBOT))
+def _attach_tree(spec, path, position, yaw, stiffness, damping) -> None:
+    path, tree, center, size = load_tree(
+        path,
+        contacts=(TREE, ROBOT),
+        stiffness=stiffness,
+        damping=damping,
+    )
     position = np.asarray(position, dtype=float).copy()
     position[2] -= center[2] - size[2] / 2
     angle = math.radians(yaw) / 2
     frame = spec.worldbody.add_frame(name="tree_frame", pos=position, quat=[math.cos(angle), 0, 0, math.sin(angle)])
     spec.attach(tree, frame=frame, prefix="tree_")
+    print(f"Loaded {path.name}.")
 
 
 class _PandaController:
@@ -218,7 +245,23 @@ def show_franka(
     contact_hz=5.0,
     max_velocity=1.5,
 ) -> None:
-    """Open a Panda contact scene in mjviser."""
+    """Run an interactive Franka contact scene in mjviser.
+
+    Parameters
+    ----------
+    model : mujoco.MjModel
+        Compiled contact model returned by :func:`build_franka`.
+    ik_model : mujoco.MjModel
+        Panda-only inverse-kinematics model returned by :func:`build_franka`.
+    host : str, default="0.0.0.0"
+        Interface on which to serve the viewer.
+    port : int, default=8080
+        Viewer TCP port.
+    contact_hz : float, default=5.0
+        Maximum contact-report frequency. Zero disables reporting.
+    max_velocity : float, default=1.5
+        Per-joint IK velocity limit in radians per second.
+    """
     data = _home_data(model)
     server = viser.ViserServer(host=host, port=port, label="ForSym Franka")
     controls = _controls(server, data)
@@ -291,7 +334,7 @@ def _finish_viewer_setup(viewer, server) -> None:
     print(f"Open http://{server.get_host()}:{server.get_port()}", flush=True)
 
 
-def parser() -> argparse.ArgumentParser:
+def _parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description="Teleoperate a Franka Panda and inspect contacts.")
     result.add_argument("tree", nargs="?", type=Path)
     _add_scene_args(result)
@@ -314,7 +357,8 @@ def _add_viewer_args(parser) -> None:
 
 
 def main() -> None:
-    args = parser().parse_args()
+    """Run the Franka teleoperation command."""
+    args = _parser().parse_args()
     _validate(args)
     model, ik_model = build_franka(
         args.tree,

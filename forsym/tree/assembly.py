@@ -1,4 +1,5 @@
 """Convert interpreted turtle geometry into physical tree nodes."""
+
 from typing_extensions import Generator
 from random import Random
 import numpy as np
@@ -44,7 +45,7 @@ def get_joint_type(tree_branch_parent: TreeBranch, t_config: TreeConfig, child_c
     return JointType.fixed
 
 
-def add_fruits(root:TreeBranch, t_config:TreeConfig, rng:Random):
+def add_fruits(root: TreeBranch, t_config: TreeConfig, rng: Random):
     """Attach configured fruit nodes to selected branches.
 
     Parameters
@@ -78,7 +79,7 @@ def add_fruits(root:TreeBranch, t_config:TreeConfig, rng:Random):
     return fruit_index
 
 
-def sample_fruit_locations(length: float, count:int, rng:Random) -> list[float]:
+def sample_fruit_locations(length: float, count: int, rng: Random) -> list[float]:
     """Sample fruit positions from the outer thirds of a branch.
 
     Parameters
@@ -114,7 +115,7 @@ def _random_xy(options, rng):
     return (x, y) if rng.choice((True, False)) else (y, x)
 
 
-def gen_branch_graph(t_root: TurtleBranch, t_config: TreeConfig) -> TreeBranch: 
+def gen_branch_graph(t_root: TurtleBranch, t_config: TreeConfig) -> TreeBranch:
     """Convert turtle geometry into a physical tree hierarchy.
 
     Parameters
@@ -177,7 +178,7 @@ def gen_branch_graph(t_root: TurtleBranch, t_config: TreeConfig) -> TreeBranch:
     return trunk
 
 
-def iter_lsystem_configs(l_config: LSystemConfig, max_trees: int, rng:np.random.Generator) -> Generator[LSystemConfig]:
+def iter_lsystem_configs(l_config: LSystemConfig, max_trees: int, rng: np.random.Generator) -> Generator[LSystemConfig]:
     """Yield the configured L-system parameter sets.
 
     Parameters

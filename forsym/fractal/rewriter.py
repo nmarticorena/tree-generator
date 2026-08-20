@@ -2,10 +2,7 @@ from forsym.tree.config import LSystemConfig
 from forsym.fractal import rule_parser as parser
 
 
-
-
-
-def expand_lsystem(l_config:LSystemConfig):
+def expand_lsystem(l_config: LSystemConfig):
     """Expand a configured L-system to its final generation.
 
     Parameters
@@ -18,6 +15,7 @@ def expand_lsystem(l_config:LSystemConfig):
     str
         Fully expanded L-system string.
     """
+
     def _evaluate(successor, parameters):
         tokens = []
         for token in parser.tokenize(successor):
@@ -27,7 +25,7 @@ def expand_lsystem(l_config:LSystemConfig):
                 operand = operand.format(",".join(map(str, values)))
             tokens.append(operand)
         return "".join(tokens)
-    
+
     l_string = l_config.axiom
 
     for _ in range(l_config.generations):

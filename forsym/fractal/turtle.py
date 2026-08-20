@@ -107,7 +107,7 @@ class TurtleBranch(NodeMixin):
         return hash(self.turtle_line)
 
 
-def translate(point:Point, length:float, heading:list[float]) -> Point:
+def translate(point: Point, length: float, heading: list[float]) -> Point:
     """Translate a point along a heading vector.
 
     Parameters
@@ -130,7 +130,7 @@ def translate(point:Point, length:float, heading:list[float]) -> Point:
     return Point(x, y, z)
 
 
-def l_string_to_turtle_lines(l_string:str, l_config:LSystemConfig, rng:Random) -> list[TurtleLine]:
+def l_string_to_turtle_lines(l_string: str, l_config: LSystemConfig, rng: Random) -> list[TurtleLine]:
     """Interpret an expanded L-system as turtle line segments.
 
     Parameters
@@ -213,7 +213,7 @@ def l_string_to_turtle_lines(l_string:str, l_config:LSystemConfig, rng:Random) -
     return t_lines
 
 
-def turtle_lines_to_branches(turtle_lines: list[TurtleLine])-> TurtleBranch:
+def turtle_lines_to_branches(turtle_lines: list[TurtleLine]) -> TurtleBranch:
     """Build a branch hierarchy from connected turtle lines.
 
     Parameters

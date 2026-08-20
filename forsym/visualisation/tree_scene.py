@@ -56,11 +56,23 @@ def load_tree(
     *,
     contacts: tuple[int, int] | None = None,
     prune_fixed: bool = False,
+    stiffness: float = 400.0,
+    damping: float = 0.2,
+    armature: float = 0.01,
+    friction: float = 0.01,
 ) -> tuple[Path, mujoco.MjSpec, np.ndarray, np.ndarray]:
-    """Load a tree and return its path, spec, center, and size."""
+    """Load and tune a tree spec, returning its bounds for scene placement."""
     path = _tree_path(path)
     spec = _tree_spec(path, contacts, prune_fixed)
-    lower, upper = bounds(spec.compile())
+    tune_tree_spec(
+        spec,
+        stiffness=stiffness,
+        damping=damping,
+        armature=armature,
+        friction=friction,
+    )
+    model = spec.compile()
+    lower, upper = bounds(model)
     return path, spec, (lower + upper) / 2.0, np.maximum(upper - lower, 0.05)
 
 
@@ -137,6 +149,37 @@ def tune_tree(
         _tune_joint(model, joint_id, spring, damper, armature, friction)
     model.qpos_spring[:] = model.qpos0
     return len(joints)
+
+
+def tune_tree_spec(
+    spec: mujoco.MjSpec,
+    *,
+    prefix: str = "",
+    stiffness: float = 400.0,
+    damping: float = 0.2,
+    armature: float = 0.01,
+    friction: float = 0.01,
+) -> int:
+    """Apply the tree dynamics policy directly to an uncompiled ``MjSpec``.
+
+    This is the generator/scene counterpart of :func:`tune_tree`. URDF does
+    not encode all MuJoCo passive-joint settings, so tuning the spec before
+    attaching it preserves those settings in the final compiled scene.
+    """
+    _validate_dynamics(stiffness, damping, armature, friction)
+    tuned = 0
+    for joint in spec.joints:
+        name = joint.name or ""
+        values = tree_joint_dynamics(name, stiffness, damping) if name.startswith(prefix) else None
+        if values is None:
+            continue
+        spring, damper = values
+        joint.stiffness[0] = spring
+        joint.damping[0] = damper
+        joint.armature = armature
+        joint.frictionloss = friction
+        tuned += 1
+    return tuned
 
 
 def _tree_joints(model, prefix, stiffness, damping):

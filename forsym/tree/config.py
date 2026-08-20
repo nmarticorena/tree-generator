@@ -1,4 +1,5 @@
 """Load the canonical tree-generation YAML schema."""
+
 import dataclasses
 from dataclasses import dataclass
 from pathlib import Path
@@ -27,7 +28,7 @@ class LSystemConfig:
     relative_std: float
 
     @classmethod
-    def from_dict(cls, values:dict) -> "LSystemConfig":
+    def from_dict(cls, values: dict) -> "LSystemConfig":
         return cls(
             axiom=values["axiom"],
             generations=values["generations"],
@@ -53,7 +54,7 @@ class TreeConfig:
     fruit_branch: str = ""
 
     @classmethod
-    def from_dict(cls, values:dict) -> "TreeConfig":
+    def from_dict(cls, values: dict) -> "TreeConfig":
         return cls(
             length_scale=values["scale"]["length"],
             radius_scale=values["scale"]["radius"],
@@ -84,32 +85,33 @@ def load_config(path: str | Path) -> tuple[LSystemConfig, TreeConfig, str]:
     tree = yaml.safe_load(Path(path).read_text())["tree"]
     return LSystemConfig.from_dict(tree["lsystem"]), TreeConfig.from_dict(tree), tree["outfile"]
 
+
 @dataclass
 class TreeGenerationConfig:
     """Everything needed to run the pipeline: a plain, freely-constructable object.
- 
+
     YAML is just one way to build one (`from_yaml`); you can equally build one
     by hand, or take an existing one and tweak a few fields with `replace`.
     """
- 
+
     lsystem: LSystemConfig
     tree: TreeConfig
     output_pattern: str
- 
+
     @classmethod
     def from_yaml(cls, path: str | Path) -> "TreeGenerationConfig":
         lsystem, tree, output_pattern = load_config(path)
         return cls(lsystem=lsystem, tree=tree, output_pattern=output_pattern)
- 
+
     @classmethod
     def default(cls) -> "TreeGenerationConfig":
         """The shipped ternary_tree.yaml, as a config object."""
         default_path = Path(__file__).resolve().parent / "ternary_tree.yaml"
         return cls.from_yaml(default_path)
- 
+
     def replace(self, **overrides: object) -> "TreeGenerationConfig":
         """Override any leaf field by name, regardless of which sub-config it lives on.
- 
+
         >>> cfg = TreeGenerationConfig.default().replace(generations=6, fruit_count=2)
         """
         lsystem_fields = {f.name for f in dataclasses.fields(LSystemConfig)}
@@ -117,7 +119,7 @@ class TreeGenerationConfig:
         unknown = overrides.keys() - lsystem_fields - tree_fields - {"output_pattern"}
         if unknown:
             raise TypeError(f"Unknown config field(s): {sorted(unknown)}")
- 
+
         lsystem_overrides = {k: v for k, v in overrides.items() if k in lsystem_fields}
         tree_overrides = {k: v for k, v in overrides.items() if k in tree_fields}
         return dataclasses.replace(
@@ -126,6 +128,3 @@ class TreeGenerationConfig:
             tree=dataclasses.replace(self.tree, **tree_overrides),
             output_pattern=overrides.get("output_pattern", self.output_pattern),
         )
- 
- 
-

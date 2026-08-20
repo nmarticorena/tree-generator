@@ -134,6 +134,7 @@ def generate_all_trees(
     with ProcessPoolExecutor(max_workers=workers) as executor:
         return list(executor.map(generate_tree, jobs))
 
+
 def generate_trees(
     n_trees: int = 100,
     config: TreeGenerationConfig = TreeGenerationConfig.default(),
