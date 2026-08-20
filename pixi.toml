@@ -3,16 +3,42 @@ authors = ["nmarticorena <nicolas.marticorena.vidal@gmail.com>"]
 channels = ["conda-forge"]
 name = "tree-generator"
 platforms = ["linux-64", "osx-arm64"]
-version = "0.1.0"
+version = "0.1.1"
+preview = ["pixi-build"]
 
 [tasks]
+
+[package.build.backend]
+name = "pixi-build-python"
+
+[pypi-options]
+no-build-isolation = true
+
+[package.host-dependencies]
+hatchling = "*"
+
+[package.run-dependencies]
+python = "3.14.*"
+ruff = ">=0.16.3,<0.17"
+inquirerpy = ">=0.3.4,<0.4"
+numpy = ">=2.5.2,<3"
+emsdk = ">=3.1.46,<4"
+libxml2 = ">=2.15.3,<3"
+tyro = ">=0.9.0,<1"
+anytree = ">=2.13.0,<3"
+
 
 [dependencies]
 python = "3.14.*"
 ruff = ">=0.16.3,<0.17"
 inquirerpy = ">=0.3.4,<0.4"
 numpy = ">=2.5.2,<3"
-emsdk = ">=3.1.46,<4"
+libxml2 = ">=2.15.3,<3"
+mujoco-warp = ">=3.11.0,<4"
+mujoco = "==3.10.0.0"
+hatchling = ">=1.32.0,<2"
+setuptools = ">=84.0.0,<85"
+urdf-usd-converter = ">=0.3.3,<0.4"
 
 [pypi-dependencies]
 forsym = {path = ".", editable = true, extras = ["mujoco-warp","teleoperation"]}
