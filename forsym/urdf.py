@@ -18,11 +18,41 @@ def postprocess_tree_urdf(
     damping: float = 0.2,
     friction: float = 0.01,
 ) -> Path:
-    """Write a portable, simulation-ready URDF and return its path.
+    """Write a simulation-ready URDF using the ForSym tree policy.
 
-    Fixed-child collisions are removed using the PCAP raw-to-train policy.
-    URDF-representable damping and friction are written to flexible joints;
-    stiffness is used to derive damping but cannot itself be stored in URDF.
+    Parameters
+    ----------
+    source : str or pathlib.Path
+        Generated tree URDF to process.
+    destination : str or pathlib.Path, optional
+        Output path. By default, the file is written beside ``source`` with a
+        ``_processed.urdf`` suffix.
+    prune_fixed : bool, default=True
+        Remove collision geometry from non-trunk links joined by fixed joints.
+    stiffness : float, default=400.0
+        Base spring stiffness used to derive level-dependent damping.
+    damping : float, default=0.2
+        Scale applied to each joint's derived stiffness.
+    friction : float, default=0.01
+        Friction loss written to flexible URDF joints.
+
+    Returns
+    -------
+    pathlib.Path
+        Absolute path to the processed URDF.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``source`` does not exist.
+    ValueError
+        If the URDF structure or a dynamics value is invalid.
+
+    Notes
+    -----
+    URDF cannot represent spring stiffness, armature, or MuJoCo collision
+    masks. Use :func:`forsym.mujoco.export_tree_mjcf` when those settings must
+    be serialized.
     """
     source = _source_path(source)
     destination = _destination_path(source, destination)
@@ -46,8 +76,23 @@ def fixed_child_links(path: str | Path) -> set[str]:
 
 
 def tree_joint_dynamics(name: str, stiffness: float = 400.0, damping: float = 0.2) -> tuple[float, float] | None:
-    """Return spring and damper values inferred from a generated joint name."""
-    if "to-fruit-" in name or "to-leaf-" in name:
+    """Return spring and damper values inferred from a generated joint name.
+
+    Parameters
+    ----------
+    name : str
+        Generated branch or fruit joint name.
+    stiffness : float, default=400.0
+        Spring stiffness assigned to level-one branches.
+    damping : float, default=0.2
+        Scale applied to branch stiffness when deriving damping.
+
+    Returns
+    -------
+    tuple of float or None
+        Spring and damping values, or ``None`` for an unrelated joint.
+    """
+    if "to-fruit-" in name:
         return 5.0, 5.0
     match = _LEVEL.search(name)
     if match is None:
@@ -105,7 +150,7 @@ def _write_joint_dynamics(root: ET.Element, stiffness: float, damping: float, fr
     count = 0
     for joint in root.findall("joint"):
         values = tree_joint_dynamics(joint.get("name", ""), stiffness, damping)
-        if values is None or joint.get("type") not in {"continuous", "prismatic", "revolute"}:
+        if values is None or joint.get("type") not in {"revolute", "prismatic"}:
             continue
         dynamics = joint.find("dynamics")
         if dynamics is None:

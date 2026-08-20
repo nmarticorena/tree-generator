@@ -7,7 +7,7 @@
             <child link="fr-x-dummy-link"/>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <axis xyz="1 0 0"/>
-            <limit lower="-3.14159" upper="3.14159" effort="1"/>
+            <limit lower="-3.14159" upper="3.14159" effort="1" velocity="2.175"/>
             <dynamics damping="0" friction="0"/>
         </joint>
         <link name="fr-x-dummy-link">
@@ -24,7 +24,7 @@
             <child link="fr-y-dummy-link"/>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <axis xyz="0 1 0"/>
-            <limit lower="-3.14159" upper="3.14159" effort="1"/>
+            <limit lower="-3.14159" upper="3.14159" effort="1" velocity="2.175"/>
             <dynamics damping="0" friction="0"/>
         </joint>
         <link name="fr-y-dummy-link">
@@ -35,13 +35,13 @@
             </inertial>
         </link>
 
-        <!-- Prismatic joint which can mimic the break and swing -->
+        <!-- Breakaway translation. -->
         <joint name="fr-prismatic-joint" type="prismatic">
             <parent link="fr-y-dummy-link"/>
             <child link="link-branch-XXXX"/>
-            <origin xyz="0 0 0." rpy="0 0 0"/>
-            <axis xyz="1 1 0"/>
-            <limit lower="0" upper="0.1"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <axis xyz="0.70710678 0.70710678 0"/>
+            <limit lower="0" upper="0.1" effort="1" velocity="0.1"/>
             <dynamics damping="0" friction="0"/>
         </joint>
     </fruit_joint_set>
@@ -54,7 +54,7 @@
                 <sphere radius="0.02"/>
             </geometry>
             <material name="red">
-                <color rgba="1.0 0. 0. 1.0"/>
+                <color rgba="1 0 0 1"/>
             </material>
         </visual>
         <collision>

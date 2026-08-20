@@ -1,26 +1,27 @@
-"""Functions to turn, rotate and spin the turtle
-partly taken/inspired from from https://github.com/ThomasLENNE/L-system
-HLU Description from Prusinkiewicz, P., & Lindenmayer, A. (2012). The algorithmic beauty of plants. . Page 18, Sec 1.5.
-"""
+"""Three-dimensional heading-left-up operations for the L-system turtle."""
 
 import math
+
 import numpy as np
 
 
 def rotate_around_u(angle, hlu):
-    """
-    Rotate the turtle around U by the given angle.
+    """Rotate the turtle frame around its up axis.
 
-    Parameters:
-    - angle (float): Angle in radians.
-    - hlu (tuple): Turtle orientation as a tuple of lists.
+    Parameters
+    ----------
+    angle : float
+        Rotation angle in radians.
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Rotated heading, left, and up vectors.
     """
     hlu = np.array(hlu).T
 
-    # The rotation_matrix is from abop page 19
     rotation_matrix = np.array(
         [[math.cos(angle), math.sin(angle), 0], [-math.sin(angle), math.cos(angle), 0], [0, 0, 1]]
     )
@@ -30,19 +31,22 @@ def rotate_around_u(angle, hlu):
 
 
 def rotate_around_h(angle, hlu):
-    """
-    Rotate the turtle around H by the given angle.
+    """Rotate the turtle frame around its heading axis.
 
-    Parameters:
-    - angle (float): Angle in radians.
-    - hlu (tuple): Turtle orientation as a tuple of lists.
+    Parameters
+    ----------
+    angle : float
+        Rotation angle in radians.
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Rotated heading, left, and up vectors.
     """
     hlu = np.array(hlu).T
 
-    # The rotation_matrix is from abop page 19
     rotation_matrix = np.array(
         [[1, 0, 0], [0, math.cos(angle), -math.sin(angle)], [0, math.sin(angle), math.cos(angle)]]
     )
@@ -52,19 +56,22 @@ def rotate_around_h(angle, hlu):
 
 
 def rotate_around_l(angle, hlu):
-    """
-    Rotate the turtle around L by the given angle.
+    """Rotate the turtle frame around its left axis.
 
-    Parameters:
-    - angle (float): Angle in radians.
-    - hlu (tuple): Turtle orientation as a tuple of lists.
+    Parameters
+    ----------
+    angle : float
+        Rotation angle in radians.
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Rotated heading, left, and up vectors.
     """
     hlu = np.array(hlu).T
 
-    # The rotation_matrix is from abop page 19
     rotation_matrix = np.array(
         [[math.cos(angle), 0, -math.sin(angle)], [0, 1, 0], [math.sin(angle), 0, math.cos(angle)]]
     )
@@ -74,32 +81,37 @@ def rotate_around_l(angle, hlu):
 
 
 def keep_l_horizontal(hlu):
-    """
-    Keep L horizontal.
+    """Realign the turtle frame so its left axis is horizontal.
 
-    Parameters:
-    - hlu (tuple): Turtle orientation.
+    Parameters
+    ----------
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Realigned heading, left, and up vectors.
     """
     H = hlu[0]
     [xh, yh, zh] = H
-    V = [0, 0, 1]
     L = [-yh, -xh, 0]
     U = [xh * zh, -zh * yh, -(xh**2) - yh**2]
     return H, L, U
 
 
 def normalize(vector):
-    """
-    Normalize a vector.
+    """Scale a vector to unit length.
 
-    Parameters:
-    - vector (list): Input vector.
+    Parameters
+    ----------
+    vector : array-like
+        Vector to normalize.
 
-    Returns:
-    - Normalized vector (list).
+    Returns
+    -------
+    array-like
+        Unit vector, or the original zero vector.
     """
     norm = np.linalg.norm(vector)
     if norm == 0:
@@ -108,15 +120,19 @@ def normalize(vector):
 
 
 def torque(hlu, tropism):
-    """
-    Calculate the torque (H * tropism) for the given turtle orientation.
+    """Calculate the tropism torque on the turtle heading.
 
-    Parameters:
-    - hlu (tuple): Turtle orientation.
-    - tropism (list): Tropism vector.
+    Parameters
+    ----------
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
+    tropism : array-like
+        Three-dimensional tropism vector.
 
-    Returns:
-    - Torque vector (list).
+    Returns
+    -------
+    list of float
+        Cross product of the heading and tropism vectors.
     """
     H = hlu[0]
     [xh, yh, zh] = H
@@ -126,16 +142,21 @@ def torque(hlu, tropism):
 
 
 def rotate(hlu, axis, angle):
-    """
-    Rotate the turtle vector around the given axis by the given angle.
+    """Rotate the turtle frame around an arbitrary axis.
 
-    Parameters:
-    - hlu (tuple): Turtle orientation before rotation.
-    - axis (list): Axis vector.
-    - angle (float): Rotation angle in radians.
+    Parameters
+    ----------
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
+    axis : array-like
+        Three-dimensional rotation axis.
+    angle : float
+        Rotation angle in radians.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Rotated heading, left, and up vectors.
     """
     axis = normalize(axis)
     [ax, ay, az] = axis
@@ -159,17 +180,20 @@ def rotate(hlu, axis, angle):
 
 
 def apply_tropism(hlu, tropism):
-    """
-    Apply tropism to the turtle orientation.
+    """Rotate the turtle frame toward a tropism vector.
 
-    Parameters:
-    - hlu (tuple): Turtle orientation.
-    - tropism (tuple): Tropism vector.
+    Parameters
+    ----------
+    hlu : tuple of array-like
+        Heading, left, and up vectors.
+    tropism : array-like
+        Three-dimensional tropism vector.
 
-    Returns:
-    - Updated turtle orientation (tuple of lists).
+    Returns
+    -------
+    tuple of list
+        Tropism-adjusted heading, left, and up vectors.
     """
-    M = torque(hlu, tropism)  # Rotation axis
-    alpha = np.linalg.norm(M)  # Rotation angle
-    H, L, U = rotate(hlu, M, alpha)
-    return H, L, U
+    axis = torque(hlu, tropism)
+    angle = np.linalg.norm(axis)
+    return rotate(hlu, axis, angle)
