@@ -25,6 +25,7 @@ def beam_deflection_param(radius, length, noise_std=1.0, E=3e9):
     kd = kp / 10
     return round(max(kp, 2.0), 2), round(max(kd, 1.0), 2)
 
+
 def rud_deflection_param(branch_level, base_kp=100.0, noise_std=1.0, rng=None):
     """Return (kp, kd) for the given branch level.
 
@@ -48,7 +49,3 @@ def rud_deflection_param(branch_level, base_kp=100.0, noise_std=1.0, rng=None):
 
     kd = kp / 5
     return round(max(kp, 2.0), 2), round(max(kd, 2.0), 2)
-
-
-
-

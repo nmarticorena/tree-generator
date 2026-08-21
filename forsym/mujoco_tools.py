@@ -27,7 +27,7 @@ def export_tree_mjcf(
     noise_std: float = 1.0,
     friction: float = 0.01,
     armature: float = 0.01,
-    effort: float= 100.,
+    effort: float = 100.0,
     contype: int = 0,
     conaffinity: int = 0,
     collision_geom_group: int = 1,
@@ -49,7 +49,7 @@ def export_tree_mjcf(
     prune_fixed : bool, default=True
         Disable contacts on collision geoms belonging to non-trunk links
         joined by fixed joints, mirroring
-        :func:`~forsym.tree.postprocess.postprocess_tree_urdf`'s pruning.
+        :func:`~forsym.dynamics.rud_deflection_param`; halved per
     base_kp : float, default=400.0
         L1 joint stiffness passed to
         :func:`~forsym.tree.postprocess.rud_deflection_param`; halved per
@@ -134,9 +134,7 @@ def _write_mjcf_from_urdf(source: Path, destination: Path, contype: int, conaffi
     visual_default = ET.SubElement(defaults, "default", {"class": "visual"})
     ET.SubElement(visual_default, "geom", {"contype": "0", "conaffinity": "0", "group": "2"})
     collision_default = ET.SubElement(defaults, "default", {"class": "collision"})
-    ET.SubElement(collision_default, "geom", {
-        "contype": str(contype), "conaffinity": str(conaffinity), "group": "1"
-    })
+    ET.SubElement(collision_default, "geom", {"contype": str(contype), "conaffinity": str(conaffinity), "group": "1"})
 
     links = {link.get("name"): link for link in urdf.findall("link")}
     children = {_link_ref(joint, "child"): joint for joint in urdf.findall("joint")}
@@ -167,14 +165,17 @@ def _add_body(parent, name, links, joints_by_parent, children, materials):
         j = {"name": joint.get("name"), "type": "hinge" if joint.get("type") != "prismatic" else "slide"}
         axis = joint.find("axis")
         limit = joint.find("limit")
-        if axis is not None: j["axis"] = axis.get("xyz", "0 0 1")
-        if limit is not None and limit.get("lower") is not None: j["range"] = f"{limit.get('lower')} {limit.get('upper')}"
+        if axis is not None:
+            j["axis"] = axis.get("xyz", "0 0 1")
+        if limit is not None and limit.get("lower") is not None:
+            j["range"] = f"{limit.get('lower')} {limit.get('upper')}"
         ET.SubElement(body, "joint", j)
     _add_inertial(body, links[name].find("inertial"))
     for kind, cls in (("collision", "collision"), ("visual", "visual")):
         for element in links[name].findall(kind):
             geom = _geometry(element.find("geometry"), element.find("origin"), cls, element.find("material"))
-            if geom is not None: body.append(geom)
+            if geom is not None:
+                body.append(geom)
     for child_joint in joints_by_parent.get(name, []):
         _add_body(body, _link_ref(child_joint, "child"), links, joints_by_parent, children, materials)
     return body
@@ -186,31 +187,44 @@ def _link_ref(joint, element):
 
 
 def _geometry(geometry, origin, cls, material):
-    if geometry is None: return None
+    if geometry is None:
+        return None
     shape = next(iter(geometry), None)
-    if shape is None: return None
+    if shape is None:
+        return None
     tag, values = shape.tag, shape.attrib
     attrib = {"class": cls, "type": tag}
-    if tag == "cylinder": attrib["size"] = f"{values.get('radius', '0')} {float(values.get('length', 0)) / 2}"
-    elif tag == "sphere": attrib["size"] = values.get("radius", "0")
-    elif tag == "box": attrib["size"] = " ".join(str(float(v) / 2) for v in values.get("size", "0 0 0").split())
-    else: return None
+    if tag == "cylinder":
+        attrib["size"] = f"{values.get('radius', '0')} {float(values.get('length', 0)) / 2}"
+    elif tag == "sphere":
+        attrib["size"] = values.get("radius", "0")
+    elif tag == "box":
+        attrib["size"] = " ".join(str(float(v) / 2) for v in values.get("size", "0 0 0").split())
+    else:
+        return None
     if origin is not None:
         attrib["pos"] = origin.get("xyz", "0 0 0")
-        if origin.get("rpy") != "0 0 0": attrib["quat"] = _rpy_to_quat(origin.get("rpy"))
+        if origin.get("rpy") != "0 0 0":
+            attrib["quat"] = _rpy_to_quat(origin.get("rpy"))
     if cls == "visual" and material is not None:
         attrib["material"] = material.get("name", "default_material")
     return ET.Element("geom", attrib)
 
 
 def _add_inertial(body, inertial):
-    if inertial is None: return
+    if inertial is None:
+        return
     origin = inertial.find("origin")
     mass = inertial.find("mass")
     inertia = inertial.find("inertia")
-    if mass is None or inertia is None: return
-    attrib = {"mass": mass.get("value", "0"), "diaginertia": " ".join(inertia.get(k, "0") for k in ("ixx", "iyy", "izz"))}
-    if origin is not None: attrib["pos"] = origin.get("xyz", "0 0 0")
+    if mass is None or inertia is None:
+        return
+    attrib = {
+        "mass": mass.get("value", "0"),
+        "diaginertia": " ".join(inertia.get(k, "0") for k in ("ixx", "iyy", "izz")),
+    }
+    if origin is not None:
+        attrib["pos"] = origin.get("xyz", "0 0 0")
     ET.SubElement(body, "inertial", attrib)
 
 

@@ -1,7 +1,6 @@
 """Public entry point for lazy, YAML-driven tree generation."""
 
 from __future__ import annotations
-from forsym.mujoco_tools import export_tree_mjcf
 
 import random
 from collections.abc import Iterator
@@ -39,8 +38,11 @@ def generate_tree(args) -> Path:
         rng=random.Random(seed + index),
     ).resolve()
 
+
 def generate_mujoco_mjcf(args) -> Path:
     """Generate one tree inside a worker process."""
+    from forsym.mujoco_tools import export_tree_mjcf
+
     (
         index,
         varied_config,
@@ -66,6 +68,7 @@ def generate_mujoco_mjcf(args) -> Path:
         destination=None,
     )
 
+
 def generate_mujoco(
     n_trees: int = 100,
     config: TreeGenerationConfig = TreeGenerationConfig.default(),
@@ -74,7 +77,7 @@ def generate_mujoco(
     workers: int | None = None,
 ) -> list[Path]:
     numpy_rng = np.random.default_rng(seed)
-    
+
     jobs = [
         (
             index,
@@ -97,8 +100,6 @@ def generate_mujoco(
         return list(executor.map(generate_mujoco_mjcf, jobs))
 
 
-    
-    
 def generate_all_trees(
     n_trees: int = 100,
     config: TreeGenerationConfig = TreeGenerationConfig.default(),
@@ -189,6 +190,7 @@ def main():
     ti = time.perf_counter()
     tyro.cli(generate_all_trees)
     print(f"Finished generating trees in {time.perf_counter() - ti:.2f} seconds")
+
 
 def main_mujoco():
     import time
