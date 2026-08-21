@@ -9,10 +9,20 @@ from pathlib import Path
 _LEVEL = re.compile(r"to-branch-[^-]*?L(?P<level>\d+)P")
 
 
+def branch_level(dof_name: str) -> int:
+    """Return the level of the child branch named by a tree DOF."""
+    match = _LEVEL.search(dof_name)
+    if match is None:
+        raise ValueError(f"Cannot determine child branch level from: {dof_name}")
+    level = int(match.group("level"))
+    if not 0 < level <= 7:
+        raise ValueError(f"Branch level must be in 1..7, got {level}: {dof_name}")
+    return level
+
+
 def postprocess_tree_urdf(
     source: str | Path,
     destination: str | Path | None = None,
-    *,
     prune_fixed: bool = True,
     stiffness: float = 400.0,
     damping: float = 0.2,
@@ -51,7 +61,7 @@ def postprocess_tree_urdf(
     Notes
     -----
     URDF cannot represent spring stiffness, armature, or MuJoCo collision
-    masks. Use :func:`forsym.mujoco.export_tree_mjcf` when those settings must
+    masks. Use :func:`forsym.mujoco_tools.export_tree_mjcf` when those settings must
     be serialized.
     """
     source = _source_path(source)
@@ -75,30 +85,30 @@ def fixed_child_links(path: str | Path) -> set[str]:
     return {link for joint in joints if (link := _fixed_child(joint))}
 
 
-def tree_joint_dynamics(name: str, stiffness: float = 400.0, damping: float = 0.2) -> tuple[float, float] | None:
-    """Return spring and damper values inferred from a generated joint name.
+# def tree_joint_dynamics(name: str, stiffness: float = 400.0, damping: float = 0.2) -> tuple[float, float] | None:
+#     """Return spring and damper values inferred from a generated joint name.
 
-    Parameters
-    ----------
-    name : str
-        Generated branch or fruit joint name.
-    stiffness : float, default=400.0
-        Spring stiffness assigned to level-one branches.
-    damping : float, default=0.2
-        Scale applied to branch stiffness when deriving damping.
+#     Parameters
+#     ----------
+#     name : str
+#         Generated branch or fruit joint name.
+#     stiffness : float, default=400.0
+#         Spring stiffness assigned to level-one branches.
+#     damping : float, default=0.2
+#         Scale applied to branch stiffness when deriving damping.
 
-    Returns
-    -------
-    tuple of float or None
-        Spring and damping values, or ``None`` for an unrelated joint.
-    """
-    if "to-fruit-" in name:
-        return 5.0, 5.0
-    match = _LEVEL.search(name)
-    if match is None:
-        return None
-    spring = max(stiffness / 2 ** (int(match.group("level")) - 1), 2.0)
-    return spring, max(spring * damping, 2.0)
+#     Returns
+#     -------
+#     tuple of float or None
+#         Spring and damping values, or ``None`` for an unrelated joint.
+#     """
+#     if "to-fruit-" in name:
+#         return 5.0, 5.0
+#     match = _LEVEL.search(name)
+#     if match is None:
+#         return None
+#     spring = max(stiffness / 2 ** (int(match.group("level")) - 1), 2.0)
+#     return spring, max(spring * damping, 2.0)
 
 
 def _source_path(path: str | Path) -> Path:

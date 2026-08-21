@@ -85,6 +85,7 @@ def _make_batched_trees_from_models(models, *, nconmax=None):
     base.opt.disableflags |= mujoco.mjtDisableBit.mjDSBL_MULTICCD
     model = mjw.put_model(base)
     data_kwargs = {} if nconmax is None else {"nconmax": nconmax}
+    data_kwargs["njmax"] = max(64, 4 * base.ngeom + base.njnt)
     data = mjw.make_data(base, nworld=len(models), **data_kwargs)
 
     def stack(name):
@@ -116,9 +117,7 @@ def _make_batched_trees_from_models(models, *, nconmax=None):
     model.geom_rbound = wp.array(stack("geom_rbound"), dtype=float)
     model.geom_rgba = wp.array(stack("geom_rgba"), dtype=wp.vec4)
 
-    geom_aabb = np.stack(
-        [item.geom_aabb.reshape(base.ngeom, 2, 3) for item in models]
-    )
+    geom_aabb = np.stack([item.geom_aabb.reshape(base.ngeom, 2, 3) for item in models])
     model.geom_aabb = wp.array(geom_aabb, dtype=wp.vec3)
 
     # make_data() initially used only the base tree, so reset it after batching.
@@ -146,8 +145,7 @@ _TOPOLOGY_FIELDS = (
 def _topology_key(model):
     counts = ("nq", "nv", "nbody", "njnt", "ngeom", "nu")
     return tuple(
-        [getattr(model, name) for name in counts]
-        + [getattr(model, name).tobytes() for name in _TOPOLOGY_FIELDS]
+        [getattr(model, name) for name in counts] + [getattr(model, name).tobytes() for name in _TOPOLOGY_FIELDS]
     )
 
 
@@ -171,10 +169,7 @@ def make_batched_tree_groups(
     groups = {}
     for model in models:
         groups.setdefault(_topology_key(model), []).append(model)
-    return [
-        _make_batched_trees_from_models(group, nconmax=nconmax)
-        for group in groups.values()
-    ]
+    return [_make_batched_trees_from_models(group, nconmax=nconmax) for group in groups.values()]
 
 
 def make_batched_trees(
@@ -195,8 +190,7 @@ def make_batched_trees(
     )
     if len(groups) != 1:
         raise ValueError(
-            f"Found {len(groups)} incompatible tree topologies; "
-            "use make_batched_tree_groups() to load them all"
+            f"Found {len(groups)} incompatible tree topologies; use make_batched_tree_groups() to load them all"
         )
     return groups[0]
 

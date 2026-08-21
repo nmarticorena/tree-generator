@@ -50,7 +50,16 @@ def select_flexible_root(t_root, tree_config, rng):
     return flexible_root.name, fruit_branch.name
 
 
-def generate_tree_urdf(index:int, l_string:str, l_config:LSystemConfig, tree_config:TreeConfig, output_pattern:str, output_root:str|Path, rng:Random, remove_col: bool = True) -> Path:
+def generate_tree_urdf(
+    index: int,
+    l_string: str,
+    l_config: LSystemConfig,
+    tree_config: TreeConfig,
+    output_pattern: str,
+    output_root: str | Path,
+    rng: Random,
+    remove_col: bool = True,
+) -> Path:
     """Assemble one expanded L-system and write its tree URDF.
 
     Parameters
@@ -70,7 +79,7 @@ def generate_tree_urdf(index:int, l_string:str, l_config:LSystemConfig, tree_con
     rng : random.Random
         Local random-number generator used for geometry and fruit placement.
     remove_col : bool, default=True
-        Remove collision of fixed branches that are not parents of the 
+        Remove collision of fixed branches that are not parents of the
         flexible subtree
 
     Returns

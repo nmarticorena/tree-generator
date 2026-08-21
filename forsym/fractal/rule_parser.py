@@ -39,7 +39,7 @@ def extract_idents(pred: str) -> list[str] | None:
     return None
 
 
-def check_format(pred:str, token:str) -> tuple[bool, dict]:
+def check_format(pred: str, token: str) -> tuple[bool, dict]:
     """Match a parameterized L-system token against a predecessor.
 
     Parameters
@@ -78,7 +78,7 @@ def check_format(pred:str, token:str) -> tuple[bool, dict]:
     return False, params
 
 
-def extract_evals(succ:str) -> list[str]:
+def extract_evals(succ: str) -> list[str]:
     """Extract the evaluation string from the rule list
     E.g. F(c+1, w*2)" => ['c+1', 'w*2']"""
     pattern = r"\(([^()]+)\)"
