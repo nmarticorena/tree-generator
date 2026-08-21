@@ -70,6 +70,6 @@ Its the same as the generate-trees but will create both the `raw` `.urdf` file a
 
 Then you can simply simulate it running:
 ```bash
-pixi run mujoco-simulate genreated/trees/tree_{idx}_processed.xml
+pixi run mujoco-simulate generated/trees/tree_{idx}_processed.xml
 ```
 
