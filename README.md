@@ -59,4 +59,17 @@ urdfs = generate_trees(n_trees= 100, config=config, output_root="generated", see
 first_urdf = next(urdfs) # Generate and return the path to the urdf file
 ```
 
+### Mujoco
+To test the generated trees you can export the `.xml` mujoco ready files that consider the parameters of the joints
+
+To generate:
+```bash
+pixi run forsym-generate-mjcf
+```
+Its the same as the generate-trees but will create both the `raw` `.urdf` file and the post-process ready to simulate in mujoco `.xml`
+
+Then you can simply simulate it running:
+```bash
+pixi run mujoco-simulate genreated/trees/tree_{idx}_processed.xml
+```
 
