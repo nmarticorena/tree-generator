@@ -5,7 +5,7 @@ from forsym import generate_trees
 
 def main() -> None:
     """Generate, compile, and display the YAML-configured forest."""
-    urdfs = list(generate_trees(100, seed=42))  # Generate 100 trees with a fixed seed for reproducibility
+    urdfs = list(generate_trees(100, seed=42, ignore = True))  # Generate 100 trees with a fixed seed for reproducibility
 
     # You can also lazy-load the trees; here we reuse the already-generated list.
     for tree in urdfs:

@@ -1,6 +1,8 @@
 """Public entry point for lazy, YAML-driven tree generation."""
 
 from __future__ import annotations
+import shutil
+import os
 
 import random
 from collections.abc import Iterator
@@ -141,6 +143,7 @@ def generate_trees(
     config: TreeGenerationConfig = TreeGenerationConfig.default(),
     output_root: str | Path = "generated",
     seed: int = 42,
+    ignore: bool = False,
 ) -> Iterator[Path]:
     """Yield simulation-ready tree URDFs described by a YAML file.
 
@@ -170,6 +173,11 @@ def generate_trees(
     lsystem_config, tree_config = config.lsystem, config.tree
     output_pattern = config.output_pattern
     _validate_output_pattern(output_pattern)
+    os.makedirs(output_root, exist_ok=True)
+
+    if ignore:
+        shutil.copy("gitignore_template", output_root / ".gitignore")
+        
 
     for index, varied_config in enumerate(assembly.iter_lsystem_configs(lsystem_config, n_trees, numpy_rng)):
         l_string = rewriter.expand_lsystem(varied_config)
