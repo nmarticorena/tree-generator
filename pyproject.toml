@@ -8,11 +8,13 @@ dependencies = [
   "pyyaml",
   "numpy>=2,<3",
   "tyro",
-  "usd-core",
-  "urdf-usd-converter",
 ]
 
 [project.optional-dependencies]
+usd = [
+  "usd-core",
+  "urdf-usd-converter",
+]
 mujoco = [
   "mujoco>=3",
 ]
@@ -27,7 +29,7 @@ teleoperation = [
   "mujoco>=3,<4",
   "robot-descriptions>=3.1,<4",
 ]
-all = ["forsym[mujoco-warp,teleoperation]"]
+all = ["forsym[mujoco-warp,teleoperation,usd]"]
 
 [project.scripts]
 # forsym-view-forest = "forsym.visualisation.mujoco_warp_viewer:main"

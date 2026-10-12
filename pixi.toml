@@ -41,4 +41,4 @@ setuptools = ">=84.0.0,<85"
 urdf-usd-converter = ">=0.3.3,<0.4"
 
 [pypi-dependencies]
-forsym = {path = ".", editable = true, extras = ["mujoco-warp","teleoperation"]}
+forsym = {path = ".", editable = true, extras = ["all"]}
